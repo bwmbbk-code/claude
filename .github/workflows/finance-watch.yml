@@ -1,0 +1,48 @@
+name: Finance Watch
+
+on:
+  schedule:
+    # 평일 장중(22:30-05:00 UTC = 미국장 기준) 30분마다. 필요에 따라 조정.
+    - cron: "*/30 22-23 * * 1-5"
+    - cron: "*/30 0-4 * * 2-6"
+  workflow_dispatch:
+    inputs:
+      threshold:
+        description: "경보 임계치(%)"
+        required: false
+        default: "3"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: scheduled
+    env:
+      FINANCE_WATCH_THRESHOLD: ${{ inputs.threshold || '3' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: scheduled/package-lock.json
+
+      - run: npm ci
+
+      - name: Write .env and .mcp.json from secrets
+        run: |
+          echo "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" > ../.env
+          echo '${{ secrets.MCP_CONFIG_JSON }}' > ../.mcp.json
+          echo '${{ secrets.CONFIG_LOCAL_MD }}' > ../config.local.md
+
+      - run: npm run finance-watch
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: finance-watch-${{ github.run_id }}
+          path: scheduled/out/

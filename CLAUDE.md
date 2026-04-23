@@ -36,4 +36,6 @@
 
 ## 확장 경로
 
-- `scheduled/`: 향후 cron + Claude Agent SDK 기반 비대화형 실행 스크립트 위치. 현재는 스켈레톤만 있음.
+- `scheduled/`: cron + Claude Agent SDK 기반 비대화형 실행 스크립트. 네 개의 작업이 구현돼 있음 (daily-brief, inbox-digest, finance-watch, content-idea-weekly).
+- `.github/workflows/`: 위 스크립트를 GitHub Actions cron으로 돌리는 워크플로 3개.
+- `.claude/hooks/session-start.sh`: 세션 시작 시 `config.local.md` 존재 확인, 없으면 사용자에게 설정 안내를 주입.

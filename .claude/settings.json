@@ -26,5 +26,17 @@
       "mcp__github__search_issues",
       "mcp__github__search_pull_requests"
     ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ]
   }
 }

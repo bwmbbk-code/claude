@@ -1,34 +1,52 @@
-# scheduled/ — 예약 실행 스크립트 (스켈레톤)
+# scheduled/ — 예약 실행 스크립트
 
-이 디렉토리는 **비대화형**으로 실행되는 자동화 스크립트를 담습니다. 예: "매일 아침 8시에 아침 브리핑을 만들어 나에게 메일로 보내기".
+cron, GitHub Actions 등 **비대화형**으로 돌리는 자동화 스크립트. 각각 [Claude Agent SDK](https://docs.claude.com/en/docs/claude-code/sdk)를 써서 슬래시 커맨드와 동일한 작업을 사용자 입력 없이 수행합니다.
 
-## 왜 이 디렉토리가 필요한가?
+## 파일
 
-`.claude/commands/`의 슬래시 커맨드는 사용자가 Claude Code 세션에서 **대화 중** 호출합니다. 반대로 cron이 돌리는 작업은 사용자 입력 없이 실행되어야 하므로, [Claude Agent SDK](https://docs.claude.com/en/docs/claude-code/sdk)로 자체 프로세스를 띄워야 합니다.
+| 스크립트 | 목적 | 권장 주기 |
+|---|---|---|
+| `daily-brief.ts` | `/daily-brief`의 스케줄 버전 | 매일 오전 8시 KST |
+| `inbox-digest.ts` | 미읽음 메일 분류 리포트 (초안 생성 없음) | 평일 오전/오후 2회 |
+| `finance-watch.ts` | 관심 자산 임계치(±N%) 경보 | 장중 30분마다 |
+| `content-idea-weekly.ts` | 주제 리서치 + 아이디어 5개 Notion에 적재 | 매주 월요일 오전 9시 |
 
-## 권장 구성 (향후)
+## 사전 준비 (1회)
 
-- **언어**: TypeScript + Node (Agent SDK 공식 지원, MCP 툴 연동이 가장 매끈)
-- **의존성**: `@anthropic-ai/claude-agent-sdk`
-- **환경변수**: `.env`의 `ANTHROPIC_API_KEY`, `NOTIFY_EMAIL`
-
-## 예시 cron (향후 작성 기준)
-
+```bash
+cd scheduled
+npm install
+cp ../.env.example ../.env         # ANTHROPIC_API_KEY 입력
+cp ../.mcp.example.json ../.mcp.json  # 사용할 MCP 서버 URL·토큰 입력
+# 루트에 config.local.md가 이미 있어야 함
 ```
-# 매일 오전 8시 아침 브리핑을 메일로 발송
-0 8 * * * cd /path/to/claude && npm run daily-brief 2>&1 | logger -t daily-brief
+
+## 실행
+
+```bash
+cd scheduled
+npm run daily-brief
+npm run inbox-digest
+npm run finance-watch
+npm run content-idea-weekly
+npm run typecheck        # 타입 오류 확인
 ```
 
-## 현재 상태
+실행 결과물은 `scheduled/out/YYYY-MM-DD/<작업명>.md`에 저장됩니다.
 
-아직 스크립트는 작성되어 있지 않습니다. 필요해지는 시점에:
-1. `package.json`의 스크립트 항목에 엔트리를 추가
-2. 이 디렉토리에 `<작업명>.ts` 파일 작성
-3. cron(또는 GitHub Actions)에 등록
+## 환경 변수
 
-## 후보 작업 리스트
+| 변수 | 의미 | 기본값 |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Anthropic API 키 (필수) | — |
+| `FINANCE_WATCH_THRESHOLD` | finance-watch 경보 임계치(%) | `3` |
+| `NOTIFY_EMAIL` | (선택) 리포트를 메일로 받고 싶을 때 | — |
 
-- `daily-brief.ts`: `/daily-brief` 슬래시 커맨드와 동일한 산출물을 메일로 자동 발송
-- `inbox-digest.ts`: 하루 한 번 미읽음 메일을 분류해 요약만 메일로 발송 (초안 생성 없이)
-- `finance-watch.ts`: 관심 종목이 임계치 ±X% 움직이면 알림 메일
-- `content-idea-weekly.ts`: 매주 월요일 `/content-research` 결과를 Notion에 적재
+## GitHub Actions로 돌리기
+
+루트의 `.github/workflows/` 디렉토리를 참고. cron 트리거와 `ANTHROPIC_API_KEY` 시크릿만 설정하면 됩니다.
+
+## 확장
+
+- 새 작업이 필요하면 `scheduled/<이름>.ts`를 추가하고 `package.json`의 `scripts`에 엔트리를 등록하세요.
+- `lib/runAgent.ts`를 재사용하면 시스템 프롬프트·MCP 서버 로딩이 자동으로 붙습니다.

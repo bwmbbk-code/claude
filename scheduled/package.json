@@ -5,7 +5,11 @@
   "description": "Scheduled (cron) scripts for 1-person business automation, powered by Claude Agent SDK.",
   "type": "module",
   "scripts": {
-    "//": "Entries will be added as scripts are created, e.g.: \"daily-brief\": \"tsx daily-brief.ts\""
+    "daily-brief": "tsx daily-brief.ts",
+    "inbox-digest": "tsx inbox-digest.ts",
+    "finance-watch": "tsx finance-watch.ts",
+    "content-idea-weekly": "tsx content-idea-weekly.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.0",

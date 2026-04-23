@@ -19,3 +19,10 @@ Thumbs.db
 
 # 로컬 Claude 설정
 .claude/settings.local.json
+
+# MCP 로컬 설정 (MCP 서버 URL·토큰 포함 가능)
+.mcp.json
+
+# scheduled/ 실행 결과물 (디렉토리는 .gitkeep으로 유지)
+scheduled/out/*
+!scheduled/out/.gitkeep

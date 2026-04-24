@@ -5,7 +5,7 @@ import { saveReport, logLine } from "./lib/notify.ts";
 /**
  * 팬아웃/팬인 패턴:
  *   1) mail-analyst · calendar-planner · finance-researcher 세 명을 Promise.all로 병렬 실행
- *   2) 뉴스 3건은 별도로 짧은 메인 쿼리로 수집
+ *   2) 업계 뉴스 3건은 별도로 짧은 메인 쿼리로 수집
  *   3) 네 결과를 정해진 포맷에 끼워 넣어 최종 마크다운 생성 (LLM 호출 없이 템플릿 조립)
  */
 
@@ -47,12 +47,12 @@ const main = async (): Promise<void> => {
     safe("finance-researcher", () =>
       runSpecialist(
         "finance-researcher",
-        "config.local.md의 관심 통화쌍·관심 종목·관심 코인을 병렬 조회해 환율/시장 두 표로 리턴하세요."
+        "config.local.md의 관심 통화쌍 환율을 병렬 조회해 표로 리턴하세요. 주식·코인은 조회하지 마세요."
       )
     ),
     safe("news", () =>
       runAgent(
-        "ItNewsSearch의 News_Article로 최신 IT 뉴스 3건을 조회하고, 각 건을 '1. [제목](링크) — 한 줄 요약' 형식으로만 리턴. 서문·맺음말 금지.",
+        "ItNewsSearch의 News_Article로 최신 업계/IT 뉴스 3건을 조회하고, 각 건을 '1. [제목](링크) — 한 줄 요약' 형식으로만 리턴. 서문·맺음말 금지.",
         { allowedTools: ["mcp__*__News_Article"] }
       )
     ),
@@ -70,7 +70,7 @@ const main = async (): Promise<void> => {
     "## 📰 뉴스 3건",
     news.trim(),
     "",
-    "## 💱 환율 · 📈 시장",
+    "## 💱 환율",
     finance.trim(),
     "",
   ].join("\n");

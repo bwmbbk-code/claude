@@ -30,10 +30,9 @@
 - **블로그 주제 키워드**: (쉼표 구분, 예: 1인 기업, 자동화, AI)
 - **관심 YouTube 채널 ID**: (쉼표 구분)
 
-## 재무
-- **관심 종목(티커)**: AAPL, NVDA, MSFT
-- **관심 코인(심볼)**: BTC_USDT, ETH_USDT
-- **관심 통화쌍**: USD/KRW, JPY/KRW
+## 환율 (재무)
+해외 고객 결제·청구·출장 경비 환산 참고용. 주식·코인 시세는 이 워크스페이스에서 다루지 않습니다.
+- **관심 통화쌍**: USD/KRW, JPY/KRW, EUR/KRW
 
 ## GitHub
 - **주 레포**: bwmbbk-code/claude

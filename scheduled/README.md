@@ -8,7 +8,7 @@ cron, GitHub Actions 등 **비대화형**으로 돌리는 자동화 스크립트
 |---|---|---|
 | `daily-brief.ts` | `/daily-brief`의 스케줄 버전 | 매일 오전 8시 KST |
 | `inbox-digest.ts` | 미읽음 메일 분류 리포트 (초안 생성 없음) | 평일 오전/오후 2회 |
-| `finance-watch.ts` | 관심 자산 임계치(±N%) 경보 | 장중 30분마다 |
+| `finance-watch.ts` | 관심 통화쌍 환율 임계치(±N%) 경보 | 평일 업무시간 30분마다 |
 | `content-idea-weekly.ts` | 주제 리서치 + 아이디어 5개 Notion에 적재 | 매주 월요일 오전 9시 |
 
 ## 사전 준비 (1회)
@@ -39,7 +39,7 @@ npm run typecheck        # 타입 오류 확인
 | 변수 | 의미 | 기본값 |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | Anthropic API 키 (필수) | — |
-| `FINANCE_WATCH_THRESHOLD` | finance-watch 경보 임계치(%) | `3` |
+| `FINANCE_WATCH_THRESHOLD` | finance-watch 환율 경보 임계치(%) | `1.5` |
 | `NOTIFY_EMAIL` | (선택) 리포트를 메일로 받고 싶을 때 | — |
 
 ## GitHub Actions로 돌리기

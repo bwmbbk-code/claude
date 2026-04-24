@@ -1,10 +1,10 @@
 # 1인 기업 자동화 허브
 
-Claude Code + MCP 도구를 기반으로 1인 기업 운영(메일·일정·문서·콘텐츠·재무)을 자동화하는 허브 레포입니다.
+Claude Code + MCP 도구를 기반으로 1인 기업 운영(메일·일정·문서·콘텐츠·환율)을 자동화하는 허브 레포입니다. 주식·코인 같은 투자 도메인은 범위에서 제외됩니다.
 
 ## 처음 설정 (1회)
 
-1. `config.example.md` → `config.local.md`로 복사한 뒤 개인 정보(이메일, Notion DB ID, 관심 종목 등)를 채웁니다.
+1. `config.example.md` → `config.local.md`로 복사한 뒤 개인 정보(이메일, Notion DB ID, 관심 통화쌍 등)를 채웁니다.
    ```bash
    cp config.example.md config.local.md
    ```
@@ -17,7 +17,7 @@ Claude Code 세션에서 다음 슬래시 커맨드를 호출하세요.
 
 | 커맨드 | 도메인 | 설명 |
 |---|---|---|
-| `/daily-brief` | 통합 | 아침 브리핑 (메일 Top + 오늘 일정 + 뉴스 + 환율/시세) |
+| `/daily-brief` | 통합 | 아침 브리핑 (메일 Top + 오늘 일정 + 뉴스 + 환율) |
 | `/weekly-review` | 통합 | 지난 주 회고 + 다음 주 우선순위 |
 | `/inbox-triage` | 메일 | Gmail 미읽음을 중요도별로 분류하고 답장 초안 작성 |
 | `/schedule-today` | 일정 | 오늘·이번 주 일정 요약 + 빈 시간 추천 |
@@ -25,7 +25,7 @@ Claude Code 세션에서 다음 슬래시 커맨드를 호출하세요.
 | `/capture-note <텍스트>` | 지식 | 메모를 Notion 아이디어 DB에 저장 |
 | `/content-research <주제>` | 콘텐츠 | YouTube·뉴스에서 주제 리서치 후 요약 |
 | `/draft-post <주제>` | 콘텐츠 | 블로그/SNS 초안 작성 후 Drive에 저장 |
-| `/finance-brief` | 재무 | 환율·관심 종목·BTC/ETH 시세 요약 |
+| `/finance-brief` | 환율 | 관심 통화쌍 환율 요약 (해외 결제/청구 참고) |
 | `/expense-log <자연어>` | 재무 | 경비를 Notion 가계부 DB에 기록 |
 | `/invoice-draft <고객> <금액> [내용]` | 재무 | 청구서 마크다운 초안을 Drive에 생성 |
 
@@ -51,7 +51,7 @@ Claude Code 세션에서 다음 슬래시 커맨드를 호출하세요.
 |---|---|---|
 | `daily-brief.ts` | 매일 08:00 KST | `daily-brief.yml` |
 | `inbox-digest.ts` | 수동/확장 | — |
-| `finance-watch.ts` | 장중 30분마다 | `finance-watch.yml` |
+| `finance-watch.ts` | 평일 30분마다 | `finance-watch.yml` — 관심 통화쌍 환율 급변동 경보 |
 | `content-idea-weekly.ts` | 매주 월 09:00 KST | `content-idea-weekly.yml` |
 
 GitHub Actions에서 돌리려면 `ANTHROPIC_API_KEY`, `MCP_CONFIG_JSON`, `CONFIG_LOCAL_MD` 시크릿을 등록하세요 (자세한 내용은 `.github/workflows/README.md`).
@@ -64,7 +64,7 @@ GitHub Actions에서 돌리려면 `ANTHROPIC_API_KEY`, `MCP_CONFIG_JSON`, `CONFI
 |---|---|---|
 | `mail-analyst` | Gmail | `search_threads`, `get_thread`, `create_draft` |
 | `calendar-planner` | Calendar | `list_events`, `suggest_time`, `create_event` |
-| `finance-researcher` | 시세·환율 | `get_ticker`, `get_stock_info`, `get_exchange_rates` |
+| `finance-researcher` | 환율 | `get_exchange_rates`, `convert_currency` (주식·코인 제외) |
 | `content-scout` | 리서치 | `search_videos`, `News_Article`, `Tech_Blog` |
 | `notion-keeper` | Notion 쓰기 | `notion-search`, `notion-create-pages`, `notion-update-page` |
 

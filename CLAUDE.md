@@ -34,6 +34,12 @@
 
 `.claude/commands/` 하위의 각 `.md` 파일이 하나의 커맨드입니다. 추가하려면 같은 디렉토리에 새 파일을 만들고 `README.md` 표에 한 줄 추가하세요.
 
+## 서브에이전트 (멀티 에이전트)
+
+도메인별 서브에이전트는 `.claude/agents/` 아래에 정의돼 있습니다 (`mail-analyst`, `calendar-planner`, `finance-researcher`, `content-scout`, `notion-keeper`). 통합 커맨드(예: `/daily-brief`)는 이들을 **Task 도구로 한 메시지 안에서 병렬** 호출해 속도와 전문성을 확보합니다. 각 에이전트는 자기 도메인의 도구만 사용하고, 지정된 출력 포맷만 리턴합니다.
+
+SDK 경로(`scheduled/*.ts`)에서는 `scheduled/lib/runAgent.ts`의 `runSpecialist()`가 동일한 `.claude/agents/<이름>.md` 본문을 `systemPrompt`에 주입해 **대화형/비대화형 양쪽에서 같은 페르소나와 규칙**을 유지합니다.
+
 ## 확장 경로
 
 - `scheduled/`: cron + Claude Agent SDK 기반 비대화형 실행 스크립트. 네 개의 작업이 구현돼 있음 (daily-brief, inbox-digest, finance-watch, content-idea-weekly).

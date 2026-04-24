@@ -37,6 +37,7 @@ Claude Code 세션에서 다음 슬래시 커맨드를 호출하세요.
 ├── .claude/
 │   ├── settings.json         # 읽기 전용 MCP 도구 allowlist + SessionStart 훅
 │   ├── commands/             # 슬래시 커맨드 (11개)
+│   ├── agents/               # 도메인별 서브에이전트 (5개)
 │   └── hooks/session-start.sh  # 세션 시작 시 config.local.md 존재 확인
 ├── scheduled/                # cron 실행용 Claude Agent SDK 스크립트 (TypeScript)
 └── .github/workflows/        # GitHub Actions cron 정의
@@ -55,7 +56,23 @@ Claude Code 세션에서 다음 슬래시 커맨드를 호출하세요.
 
 GitHub Actions에서 돌리려면 `ANTHROPIC_API_KEY`, `MCP_CONFIG_JSON`, `CONFIG_LOCAL_MD` 시크릿을 등록하세요 (자세한 내용은 `.github/workflows/README.md`).
 
+## 멀티 에이전트 구조
+
+`.claude/agents/` 아래 5개 도메인 서브에이전트가 있고, 슬래시 커맨드와 scheduled 스크립트가 이들을 병렬로 호출합니다.
+
+| 에이전트 | 도메인 | 주 도구 |
+|---|---|---|
+| `mail-analyst` | Gmail | `search_threads`, `get_thread`, `create_draft` |
+| `calendar-planner` | Calendar | `list_events`, `suggest_time`, `create_event` |
+| `finance-researcher` | 시세·환율 | `get_ticker`, `get_stock_info`, `get_exchange_rates` |
+| `content-scout` | 리서치 | `search_videos`, `News_Article`, `Tech_Blog` |
+| `notion-keeper` | Notion 쓰기 | `notion-search`, `notion-create-pages`, `notion-update-page` |
+
+**대화형(슬래시 커맨드)**: `/daily-brief`가 Task 도구로 위 3~4개를 한 메시지 안에서 병렬 호출 후 결과를 팬인.
+**비대화형(SDK)**: `scheduled/daily-brief.ts`가 `runSpecialist()`를 `Promise.all`로 병렬 호출. 페르소나는 `.claude/agents/<이름>.md` 본문을 그대로 주입해 양쪽 실행 경로에서 동일 규칙을 따르게 함 (`scheduled/lib/specialists.ts`).
+
 ## 확장
 
 - **새 도메인 자동화**가 필요하면 `.claude/commands/` 아래에 `<이름>.md`를 만들고 본 README 표에 한 줄 추가하세요.
+- **새 서브에이전트**가 필요하면 `.claude/agents/<이름>.md`를 만들고 `scheduled/lib/specialists.ts`의 `SpecialistName`에 추가하세요.
 - **새 스케줄 작업**이 필요하면 `scheduled/<이름>.ts`를 만들고 `package.json` 스크립트에 엔트리를 등록하세요.

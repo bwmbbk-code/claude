@@ -2,6 +2,10 @@ import { query, type Options } from "@anthropic-ai/claude-agent-sdk";
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import {
+  loadSpecialistPrompt,
+  type SpecialistName,
+} from "./specialists.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..", "..");
@@ -25,9 +29,15 @@ export function loadConfig(): string {
   return readFileSync(path, "utf-8");
 }
 
+type RunAgentOptions = {
+  allowedTools?: string[];
+  systemExtra?: string;
+  model?: string;
+};
+
 export async function runAgent(
   prompt: string,
-  opts: { allowedTools?: string[]; systemExtra?: string } = {}
+  opts: RunAgentOptions = {}
 ): Promise<string> {
   const config = loadConfig();
   const system = [
@@ -44,7 +54,7 @@ export async function runAgent(
   const response = query({
     prompt,
     options: {
-      model: "claude-sonnet-4-6",
+      model: opts.model ?? "claude-sonnet-4-6",
       systemPrompt: system,
       mcpServers: loadMcpServers(),
       allowedTools: opts.allowedTools,
@@ -60,4 +70,25 @@ export async function runAgent(
     }
   }
   return messages.join("\n");
+}
+
+/**
+ * 특정 스페셜리스트 페르소나로 한 번 쿼리.
+ * `.claude/agents/<name>.md`의 본문을 systemExtra에 주입하므로 대화형 Claude Code의
+ * 서브에이전트와 동일한 규칙·출력 포맷을 따른다.
+ */
+export async function runSpecialist(
+  name: SpecialistName,
+  prompt: string,
+  opts: Omit<RunAgentOptions, "systemExtra"> = {}
+): Promise<string> {
+  const persona = loadSpecialistPrompt(name);
+  return runAgent(prompt, {
+    ...opts,
+    systemExtra: [
+      `You are the "${name}" specialist. Follow the rules below strictly:`,
+      "",
+      persona,
+    ].join("\n"),
+  });
 }

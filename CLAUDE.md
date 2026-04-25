@@ -36,9 +36,16 @@
 
 ## 서브에이전트 (멀티 에이전트)
 
-도메인별 서브에이전트는 `.claude/agents/` 아래에 정의돼 있습니다 (`mail-analyst`, `calendar-planner`, `finance-researcher`, `content-scout`, `notion-keeper`). 통합 커맨드(예: `/daily-brief`)는 이들을 **Task 도구로 한 메시지 안에서 병렬** 호출해 속도와 전문성을 확보합니다. 각 에이전트는 자기 도메인의 도구만 사용하고, 지정된 출력 포맷만 리턴합니다.
+도메인별 서브에이전트는 `.claude/agents/` 아래에 정의돼 있습니다 (`mail-analyst`, `calendar-planner`, `finance-researcher`, `content-scout`, `notion-keeper`). 각 에이전트는 자기 도메인의 도구만 사용하고, 지정된 출력 포맷만 리턴하도록 시스템 프롬프트에 규칙이 잠겨 있습니다.
 
-SDK 경로(`scheduled/*.ts`)에서는 `scheduled/lib/runAgent.ts`의 `runSpecialist()`가 동일한 `.claude/agents/<이름>.md` 본문을 `systemPrompt`에 주입해 **대화형/비대화형 양쪽에서 같은 페르소나와 규칙**을 유지합니다.
+**실행 경로별로 활용 방식이 다릅니다.**
+
+| 경로 | 멀티 에이전트 활용 | 이유 |
+|---|---|---|
+| 대화형 슬래시 커맨드 (`/daily-brief` 등) | **메인 세션이 직접 도구를 병렬 호출**. 서브에이전트는 호출하지 않음. | 일부 환경에서 `Agent` 도구로 스폰된 서브에이전트가 메인 세션과 분리된 권한 컨텍스트를 가져 MCP 서버에 접근하지 못하는 경우가 있음. 단순 fetch-and-return 패턴은 메인 세션 병렬 tool_use가 동일 속도이고 항상 작동. |
+| SDK 비대화형 (`scheduled/*.ts`) | **`runSpecialist()`가 별도 프로세스로 페르소나 파일을 주입**. 진짜 팬아웃/팬인. | 별도 프로세스라 격리가 보장되고, cron에서 안정적으로 작동. 페르소나 규칙이 시스템 프롬프트로 강제됨. |
+
+`.claude/agents/<이름>.md` 본문은 두 경로 모두에서 단일 진실 원천(single source of truth)으로 쓰입니다. 사용자가 명시적으로 "X 에이전트로 처리해줘"라고 요청한 경우에만 대화형에서도 `Agent` 도구를 시도하세요.
 
 ## 확장 경로
 

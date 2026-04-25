@@ -68,8 +68,8 @@ GitHub Actions에서 돌리려면 `ANTHROPIC_API_KEY`, `MCP_CONFIG_JSON`, `CONFI
 | `content-scout` | 리서치 | `search_videos`, `News_Article`, `Tech_Blog` |
 | `notion-keeper` | Notion 쓰기 | `notion-search`, `notion-create-pages`, `notion-update-page` |
 
-**대화형(슬래시 커맨드)**: `/daily-brief`가 Task 도구로 위 3~4개를 한 메시지 안에서 병렬 호출 후 결과를 팬인.
-**비대화형(SDK)**: `scheduled/daily-brief.ts`가 `runSpecialist()`를 `Promise.all`로 병렬 호출. 페르소나는 `.claude/agents/<이름>.md` 본문을 그대로 주입해 양쪽 실행 경로에서 동일 규칙을 따르게 함 (`scheduled/lib/specialists.ts`).
+**대화형(슬래시 커맨드)**: `/daily-brief` 등은 **메인 세션이 직접 도구를 한 응답에 병렬 호출**합니다. 일부 환경에서 `Agent` 도구로 스폰된 서브에이전트가 MCP 서버에 접근하지 못하는 경우가 있어 안정성을 우선했습니다. 페르소나 파일의 분류 규칙·출력 포맷은 메인 세션이 그대로 적용.
+**비대화형(SDK)**: `scheduled/daily-brief.ts`가 `runSpecialist()`를 `Promise.all`로 병렬 호출 — 별도 프로세스라 격리·안정성 모두 확보. 페르소나는 `.claude/agents/<이름>.md` 본문을 그대로 주입해 양쪽 실행 경로에서 동일 규칙을 따르게 함 (`scheduled/lib/specialists.ts`).
 
 ## 확장
 

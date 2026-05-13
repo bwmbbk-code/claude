@@ -1,0 +1,62 @@
+[
+  {
+    "review_id": "rev_001",
+    "star_rating": 5,
+    "reviewer_initials": "M.H.",
+    "sns_content": {
+      "instagram_caption": "When your local smoke shop feels more like a trusted advisor than a store 🙌\n\nM.H. ⭐⭐⭐⭐⭐ came in searching for a specific pipe tobacco blend and walked out with a full breakdown of three alternatives from our team. That's the kind of care we bring to every conversation.\n\nStop by and experience the difference for yourself.",
+      "instagram_hashtags": [
+        "#OlympiaWA",
+        "#SmokeShop",
+        "#LocalBusiness",
+        "#PipeTobacco",
+        "#SupportLocal",
+        "#PNW",
+        "#KnowYourProducts"
+      ],
+      "twitter_post": "\"The staff actually know their products\" — M.H. ⭐⭐⭐⭐⭐\n\nAsked about pipe tobacco, got a full breakdown of 3 alternatives. That's how we do it at Olympia Smoke Shop. 💯\n\n#OlympiaWA #SmokeShop",
+      "facebook_post": "There's something special about walking into a shop where the staff genuinely know what they're talking about.\n\nM.H. shared a 5-star review that really captured what we're all about: \"The staff actually know their products — I asked about a specific pipe tobacco blend and the guy behind the counter gave me a full breakdown of three alternatives.\" That kind of product knowledge and personal attention? It's what makes us different from the big chains.\n\nWhether you're a long-time enthusiast or just exploring, we're here to help you find exactly what you need. Come visit us and see why customers like M.H. keep making us their go-to spot in Olympia.",
+      "image_card_text": "\"The staff actually know their products — never had a bad experience here.\""
+    }
+  },
+  {
+    "review_id": "rev_002",
+    "star_rating": 5,
+    "reviewer_initials": "D.C.",
+    "sns_content": {
+      "instagram_caption": "When you walk in for a birthday gift and leave with exactly what you needed ✨ D.C. found the perfect cigar set for her husband, thanks to our team taking the time to help (no pressure, just guidance). That's what community looks like. Come visit us and see the difference for yourself.",
+      "instagram_hashtags": [
+        "#OlympiaWA",
+        "#SmokeShop",
+        "#LocalBusiness",
+        "#CigarLovers",
+        "#ShopLocal",
+        "#PNW",
+        "#CommunityFirst"
+      ],
+      "twitter_post": "\"Spent 15 minutes helping me without being pushy at all\" — D.C. ⭐⭐⭐⭐⭐ That's just how we do it. Come find your perfect something. #OlympiaWA #SmokeShop",
+      "facebook_post": "Sometimes the best shopping experiences happen when someone actually takes the time to listen.\n\nD.C. came in looking for a birthday gift for her husband and ended up with the perfect cigar set — not because we pushed a sale, but because our owner spent 15 minutes understanding what she needed. She mentioned the shop felt clean, organized, and genuinely welcoming. ⭐⭐⭐⭐⭐\n\nThat's the kind of place we're building here in Olympia. No rush, no pressure, just people helping people. Stop by and experience it yourself — and if you know someone who'd appreciate that kind of service, bring them along.",
+      "image_card_text": "\"The owner spent probably 15 minutes helping me without being pushy at all.\""
+    }
+  },
+  {
+    "review_id": "rev_003",
+    "star_rating": 4,
+    "reviewer_initials": "T.S.",
+    "sns_content": {
+      "instagram_caption": "Ever wonder what makes a good shop great? It's the little things. 🛒\n\nT.S. ⭐⭐⭐⭐ loves our vape selection and friendly crew, but reminded us we can do better on keeping fan-favorite brands in stock. We hear you — and we're on it. 💪\n\nStop by and let us know what you want to see more of!",
+      "instagram_hashtags": [
+        "#OlympiaWA",
+        "#SmokeShop",
+        "#VapeShop",
+        "#CustomerFirst",
+        "#LocalBusiness",
+        "#PNW",
+        "#CommunityMatters"
+      ],
+      "twitter_post": "T.S. gave us 4⭐ for great vibes & selection, but called us out on keeping popular e-liquids stocked. Fair feedback — we're working on it! What's your must-have product? Let us know. 🙌 #OlympiaWA #SmokeShop",
+      "facebook_post": "We love honest feedback, and T.S. just gave us some real talk.\n\nThey rated us 4 out of 5 stars — loving our vape variety and friendly staff, but pointing out that their go-to e-liquid has been out of stock on their last couple visits. That's on us, and we're working to do better.\n\nAt the end of the day, we want to be the shop that has what you need, when you need it. So if there's something you keep coming back for, let us know — we're listening and restocking smarter. Thanks for keeping us honest, T.S. See you soon! 🙏",
+      "image_card_text": "\"Good variety and friendly staff — would be perfect if they kept better inventory on popular items.\""
+    }
+  }
+]

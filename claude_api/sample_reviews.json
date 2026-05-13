@@ -1,0 +1,52 @@
+[
+  {
+    "review_id": "rev_001",
+    "star_rating": 5,
+    "reviewer_name": "Marcus Holt",
+    "review_text": "This place is my go-to smoke shop in Olympia. The staff actually know their products — I asked about a specific pipe tobacco blend and the guy behind the counter gave me a full breakdown of three alternatives. Prices are fair and the selection is impressive for a local shop. Never had a bad experience here.",
+    "review_date": "2026-04-08",
+    "business_name": "Olympia Smoke Shop",
+    "business_type": "Smoke Shop",
+    "location": "Olympia, WA"
+  },
+  {
+    "review_id": "rev_002",
+    "star_rating": 5,
+    "reviewer_name": "Diane Castillo",
+    "review_text": "Stopped in looking for a birthday gift for my husband and walked out with the perfect cigar set. The owner spent probably 15 minutes helping me without being pushy at all. The shop is clean, well-organized, and has a really welcoming vibe. Already recommended it to two friends.",
+    "review_date": "2026-04-21",
+    "business_name": "Olympia Smoke Shop",
+    "business_type": "Smoke Shop",
+    "location": "Olympia, WA"
+  },
+  {
+    "review_id": "rev_003",
+    "star_rating": 4,
+    "reviewer_name": "Trevor Simmons",
+    "review_text": "Solid shop overall. Good variety of vape products and the staff is friendly. Only reason I'm not giving 5 stars is that my preferred e-liquid brand was out of stock both times I visited. They said they'd restock it but no update yet. Would be a perfect 5 if they kept better inventory on popular items.",
+    "review_date": "2026-05-02",
+    "business_name": "Olympia Smoke Shop",
+    "business_type": "Smoke Shop",
+    "location": "Olympia, WA"
+  },
+  {
+    "review_id": "rev_004",
+    "star_rating": 3,
+    "reviewer_name": "Priya Nair",
+    "review_text": "The shop has a decent selection and the location is convenient. My experience was just okay though — the person at the counter seemed distracted and I had to ask twice to get help. Nothing terrible, just not the warm service I've seen others mention. Maybe it was just an off day. I'd try again.",
+    "review_date": "2026-05-09",
+    "business_name": "Olympia Smoke Shop",
+    "business_type": "Smoke Shop",
+    "location": "Olympia, WA"
+  },
+  {
+    "review_id": "rev_005",
+    "star_rating": 1,
+    "reviewer_name": "Kevin Marsh",
+    "review_text": "Bought a vape device last week and it stopped working after two days. When I went back to explain, the staff told me all sales are final and basically shrugged it off. No attempt to troubleshoot, no offer to exchange, nothing. $45 down the drain. Really disappointed — I wanted to support a local business but not if this is how issues get handled.",
+    "review_date": "2026-05-11",
+    "business_name": "Olympia Smoke Shop",
+    "business_type": "Smoke Shop",
+    "location": "Olympia, WA"
+  }
+]

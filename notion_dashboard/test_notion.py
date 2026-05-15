@@ -2,7 +2,7 @@ import os
 import sys
 from dotenv import load_dotenv
 from notion_client import Client
-from notion_client.errors import APIResponseError
+from notion_client.errors import APIResponseError, HTTPResponseError
 
 load_dotenv()
 
@@ -39,14 +39,16 @@ try:
 
     print("=" * 50)
 
-except APIResponseError as e:
-    print(f"❌ Notion API 오류 (HTTP {e.status}): {e.code}")
-    print(f"   메시지: {e.message}")
-    if e.status == 401:
-        print("   → API 키가 유효하지 않거나 Integration이 데이터베이스에 연결되지 않았습니다.")
-    elif e.status == 404:
-        print("   → 데이터베이스 ID가 틀렸거나 Integration에 접근 권한이 없습니다.")
-        print("   → Notion 데이터베이스 → ⋯ 메뉴 → Connections → Integration 추가 필요.")
+except (HTTPResponseError, APIResponseError) as e:
+    status = getattr(e, "status", "?")
+    print(f"❌ Notion API 오류 (HTTP {status})")
+    if status == 401:
+        print("   → API 키가 유효하지 않습니다.")
+    elif status == 403:
+        print("   → Integration에 이 데이터베이스 접근 권한이 없습니다.")
+        print("   → 데이터베이스 페이지 → ⋯ → Connections → Integration 추가 필요.")
+    elif status == 404:
+        print("   → 데이터베이스 ID가 틀리거나 Integration 권한이 없습니다.")
     sys.exit(1)
 except Exception as e:
     print(f"❌ 예상치 못한 오류: {type(e).__name__}: {e}")

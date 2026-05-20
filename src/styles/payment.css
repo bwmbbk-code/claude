@@ -1,0 +1,421 @@
+/**
+ * @file payment.css
+ * @description Glassmorphism design tokens and responsive styles for the
+ *   TimeCapsule payment form. Breakpoints: 375 px (mobile) · 768 px (tablet+).
+ *   All interactive targets meet the 44 × 44 px minimum touch-target spec.
+ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Design tokens – glassmorphism
+   ───────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --glass-bg: rgba(255, 255, 255, 0.12);
+  --glass-bg-hover: rgba(255, 255, 255, 0.18);
+  --glass-bg-active: rgba(255, 255, 255, 0.22);
+  --glass-border: rgba(255, 255, 255, 0.25);
+  --glass-border-focus: rgba(255, 255, 255, 0.55);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+  --glass-shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.38);
+  --glass-blur: blur(16px);
+  --glass-blur-heavy: blur(24px);
+  --glass-radius: 16px;
+  --glass-radius-sm: 10px;
+
+  /* Typography */
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-placeholder: rgba(255, 255, 255, 0.38);
+  --text-error: #ff7b7b;
+  --text-success: #7bffb8;
+
+  /* Brand accent */
+  --accent: #a78bfa;          /* violet-400 */
+  --accent-glow: rgba(167, 139, 250, 0.45);
+  --accent-btn-bg: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+  --accent-btn-hover: linear-gradient(135deg, #6d28d9 0%, #8b5cf6 100%);
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Touch target minimum */
+  --touch-min: 44px;
+
+  /* Transition */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Base reset for the form scope
+   ───────────────────────────────────────────────────────────────────────────── */
+.payment-form *,
+.payment-form *::before,
+.payment-form *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Outer wrapper – mobile-first (375 px base)
+   ───────────────────────────────────────────────────────────────────────────── */
+.payment-form {
+  position: relative;
+  width: 100%;
+  max-width: 375px;          /* clamp to mobile card width on small screens */
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-md);
+
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Tablet and above (768 px) ─────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .payment-form {
+    max-width: 480px;
+    padding: var(--space-xl) var(--space-xl);
+    font-size: 15px;
+    backdrop-filter: var(--glass-blur-heavy);
+    -webkit-backdrop-filter: var(--glass-blur-heavy);
+    box-shadow: var(--glass-shadow-elevated);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Header
+   ───────────────────────────────────────────────────────────────────────────── */
+.payment-form__header {
+  margin-bottom: var(--space-lg);
+  text-align: center;
+}
+
+.payment-form__title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+}
+
+.payment-form__subtitle {
+  margin-top: var(--space-xs);
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+
+@media (min-width: 768px) {
+  .payment-form__title { font-size: 24px; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Field groups
+   ───────────────────────────────────────────────────────────────────────────── */
+.payment-form__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+/* Two-column row for Expiry + CVV */
+.payment-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+}
+
+@media (min-width: 768px) {
+  .payment-form__row {
+    gap: var(--space-md);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Individual field
+   ───────────────────────────────────────────────────────────────────────────── */
+.payment-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.payment-form__label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.payment-form__input {
+  /* Touch target: min height 44 px */
+  min-height: var(--touch-min);
+  width: 100%;
+  padding: 0 var(--space-md);
+
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+
+  color: var(--text-primary);
+  font-size: inherit;
+  font-family: inherit;
+  caret-color: var(--accent);
+  outline: none;
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast),
+              background var(--transition-fast);
+}
+
+.payment-form__input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.payment-form__input:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-focus);
+}
+
+.payment-form__input:focus {
+  background: var(--glass-bg-active);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.payment-form__input--error {
+  border-color: var(--text-error);
+  box-shadow: 0 0 0 3px rgba(255, 123, 123, 0.25);
+}
+
+.payment-form__error {
+  font-size: 11px;
+  color: var(--text-error);
+  min-height: 16px;         /* reserve space to prevent layout shift */
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Amount + currency row
+   ───────────────────────────────────────────────────────────────────────────── */
+.payment-form__amount-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-sm);
+  align-items: end;
+}
+
+.payment-form__currency-select {
+  min-height: var(--touch-min);
+  min-width: 80px;
+  padding: 0 var(--space-sm);
+
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+
+  color: var(--text-primary);
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition-fast);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='rgba(255,255,255,0.6)' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+
+.payment-form__currency-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Action buttons
+   ───────────────────────────────────────────────────────────────────────────── */
+.payment-form__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+@media (min-width: 768px) {
+  .payment-form__actions {
+    flex-direction: row-reverse;
+    gap: var(--space-md);
+  }
+}
+
+.payment-form__btn {
+  /* Touch target */
+  min-height: var(--touch-min);
+  width: 100%;
+  padding: 0 var(--space-lg);
+
+  border: none;
+  border-radius: var(--glass-radius-sm);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.2px;
+  transition: opacity var(--transition-fast),
+              transform var(--transition-fast),
+              box-shadow var(--transition-fast);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.payment-form__btn:active {
+  transform: scale(0.97);
+}
+
+/* Primary – submit */
+.payment-form__btn--primary {
+  background: var(--accent-btn-bg);
+  color: #fff;
+  box-shadow: 0 4px 20px var(--accent-glow);
+}
+
+.payment-form__btn--primary:hover:not(:disabled) {
+  background: var(--accent-btn-hover);
+  box-shadow: 0 6px 28px var(--accent-glow);
+}
+
+.payment-form__btn--primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Secondary – cancel */
+.payment-form__btn--secondary {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.payment-form__btn--secondary:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-focus);
+}
+
+@media (min-width: 768px) {
+  .payment-form__btn { width: auto; flex: 1; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Status banner (success / failure)
+   ───────────────────────────────────────────────────────────────────────────── */
+.payment-form__status {
+  margin-top: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--glass-radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  min-height: var(--touch-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-base);
+}
+
+.payment-form__status--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.payment-form__status--success {
+  background: rgba(123, 255, 184, 0.15);
+  border: 1px solid rgba(123, 255, 184, 0.35);
+  color: var(--text-success);
+}
+
+.payment-form__status--failure {
+  background: rgba(255, 123, 123, 0.15);
+  border: 1px solid rgba(255, 123, 123, 0.35);
+  color: var(--text-error);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Secure badge
+   ───────────────────────────────────────────────────────────────────────────── */
+.payment-form__secure {
+  margin-top: var(--space-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.payment-form__secure-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Loading spinner (inside submit button)
+   ───────────────────────────────────────────────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.payment-form__spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: var(--space-xs);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Reduced-motion override
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .payment-form__spinner {
+    animation: none;
+    border-top-color: rgba(255, 255, 255, 0.6);
+  }
+
+  .payment-form__btn,
+  .payment-form__input,
+  .payment-form__status {
+    transition: none;
+  }
+}

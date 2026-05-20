@@ -11,6 +11,8 @@
       "Bash(git diff:*)",
       "Bash(git log:*)",
       "Bash(git branch:*)",
+      "Bash(npm run *)",
+      "Write(./src/**)",
       "mcp__github__list_branches",
       "mcp__github__list_commits",
       "mcp__github__list_issues",
@@ -25,6 +27,11 @@
       "mcp__github__search_code",
       "mcp__github__search_issues",
       "mcp__github__search_pull_requests"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Write(./.env*)",
+      "Agent(some-unsafe-agent)"
     ]
   },
   "hooks": {
@@ -35,6 +42,21 @@
             "type": "command",
             "command": ".claude/hooks/session-start.sh"
           }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": "frontend-dev",
+        "hooks": [
+          { "type": "command", "command": "./scripts/log-agent-start.sh frontend-dev" }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "./scripts/log-agent-stop.sh" }
         ]
       }
     ]

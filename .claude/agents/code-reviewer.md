@@ -2,8 +2,11 @@
 name: code-reviewer
 description: 코드 변경 후 자동 호출. 품질, 보안, 가독성을 검토하고 우선순위별 피드백 제공. Use proactively after code changes.
 tools: Read, Grep, Glob, Bash
+disallowedTools: Write, Edit
 model: sonnet
+permissionMode: plan
 memory: project
+maxTurns: 20
 color: green
 ---
 

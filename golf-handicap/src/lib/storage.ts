@@ -93,6 +93,15 @@ const DEFAULT_COURSES: Course[] = [
       { color: 'White', rating: 69.9, slope: 118, par: 72 },
     ],
   },
+  {
+    id: 'eagles_pride_bg',
+    name: 'Eagles Pride — Blue/Green',
+    location: 'JBLM, Fort Lewis, WA',
+    tees: [
+      { color: 'Blue',  rating: 71.5, slope: 125, par: 71 },
+      { color: 'White', rating: 70.0, slope: 120, par: 71 },
+    ],
+  },
 
   // ── DUPONT (~20마일 북쪽) ─────────────────────────────────────────────
   {

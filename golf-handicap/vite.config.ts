@@ -1,6 +1,47 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['golf-192.svg', 'golf-512.svg'],
+      manifest: {
+        name: '골프 핸디캡 계산기',
+        short_name: 'Golf HCP',
+        description: 'USGA World Handicap System 기반 골프 핸디캡 계산기',
+        theme_color: '#1b4332',
+        background_color: '#1b4332',
+        display: 'standalone',
+        orientation: 'portrait',
+        scope: '/',
+        start_url: '/',
+        icons: [
+          {
+            src: 'golf-192.svg',
+            sizes: '192x192',
+            type: 'image/svg+xml',
+            purpose: 'any maskable',
+          },
+          {
+            src: 'golf-512.svg',
+            sizes: '512x512',
+            type: 'image/svg+xml',
+            purpose: 'any maskable',
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\//,
+            handler: 'NetworkFirst',
+          },
+        ],
+      },
+    }),
+  ],
 });

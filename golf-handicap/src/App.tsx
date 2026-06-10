@@ -52,8 +52,8 @@ export default function App() {
         </div>
       </header>
 
-      {/* Tab nav */}
-      <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+      {/* Tab nav — bottom bar on mobile, top bar on desktop */}
+      <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10 sm:block hidden">
         <div className="max-w-3xl mx-auto px-4 flex">
           {TABS.map(t => (
             <button
@@ -65,7 +65,7 @@ export default function App() {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              <span className="mr-1 hidden sm:inline">{t.icon}</span>
+              <span className="mr-1">{t.icon}</span>
               {t.label}
             </button>
           ))}
@@ -73,7 +73,7 @@ export default function App() {
       </nav>
 
       {/* Content */}
-      <main className="max-w-3xl mx-auto px-4 py-6">
+      <main className="max-w-3xl mx-auto px-4 py-6 pb-24 sm:pb-6">
         {tab === 'dashboard' && (
           <Dashboard rounds={rounds} courses={courses} />
         )}
@@ -88,8 +88,25 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="mt-12 py-6 text-center text-xs text-gray-400">
+      {/* Mobile bottom navigation */}
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-20">
+        <div className="flex">
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors ${
+                tab === t.id ? 'text-green-700' : 'text-gray-400'
+              }`}
+            >
+              <span className="text-xl leading-none">{t.icon}</span>
+              <span className="text-[10px] font-medium">{t.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      <footer className="mt-12 py-6 text-center text-xs text-gray-400 hidden sm:block">
         WHS 규정 기준 · 데이터는 브라우저 로컬 저장소에 보관
       </footer>
     </div>

@@ -36,6 +36,17 @@ export default function App() {
     setTab('dashboard');
   }
 
+  function updateRound(updated: Round) {
+    const course = courses.find(c => c.id === updated.courseId);
+    const tee = course?.tees.find(t => t.color === updated.teeColor);
+    if (!course || !tee) return;
+    setRounds(prev => prev.map(r =>
+      r.id === updated.id
+        ? { ...updated, differential: calcDifferential(updated.adjustedScore, tee.rating, tee.slope) }
+        : r
+    ));
+  }
+
   function deleteRound(id: string) {
     setRounds(prev => prev.filter(r => r.id !== id));
   }
@@ -82,7 +93,7 @@ export default function App() {
           <ScoreEntry courses={courses} onAdd={addRound} />
         )}
         {tab === 'history' && (
-          <RoundHistory rounds={rounds} courses={courses} onDelete={deleteRound} />
+          <RoundHistory rounds={rounds} courses={courses} onDelete={deleteRound} onUpdate={updateRound} />
         )}
         {tab === 'courses' && (
           <CourseManager courses={courses} onChange={setCourses} />

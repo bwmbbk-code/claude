@@ -184,7 +184,7 @@ function renderTable() {
       <td>${escapeHtml(r.person || "")}</td>
       <td class="amount-col">${fmtUsd(r.amount)}</td>
       <td>${r.eligible ? '<span class="badge badge-eligible">적격</span>' : '<span class="badge badge-ineligible">비적격</span>'}</td>
-      <td><span class="badge badge-${r.status}">${STATUS_LABELS[r.status] || r.status}</span></td>
+      <td><button class="badge badge-${r.status}" data-action="cycle-status" title="클릭하여 상태 변경">${STATUS_LABELS[r.status] || r.status}</button></td>
       <td>${r.hasAttachment ? '<button class="link-btn" data-action="view">보기</button>' : '<span style="color:var(--text-muted)">—</span>'}</td>
       <td class="row-actions">
         <button class="btn btn-small" data-action="edit">수정</button>
@@ -193,6 +193,16 @@ function renderTable() {
     </tr>`
     )
     .join("");
+
+  const footer = $("#listFooter");
+  if (receipts.length === 0) {
+    footer.textContent = "";
+  } else if (list.length === 0) {
+    footer.textContent = "조건에 맞는 영수증이 없습니다. 필터를 확인해 주세요.";
+  } else {
+    const total = list.reduce((acc, r) => acc + (r.amount || 0), 0);
+    footer.textContent = `${list.length}건 표시 · 합계 ${fmtUsd(total)}`;
+  }
 }
 
 function renderAll() {
@@ -289,7 +299,14 @@ async function onTableClick(e) {
   if (!receipt) return;
 
   const action = btn.dataset.action;
-  if (action === "edit") {
+  if (action === "cycle-status") {
+    const order = ["unclaimed", "claimed", "reimbursed"];
+    receipt.status = order[(order.indexOf(receipt.status) + 1) % order.length];
+    receipt.updatedAt = Date.now();
+    await putReceipt(receipt);
+    renderSummary();
+    renderTable();
+  } else if (action === "edit") {
     openForm(receipt);
   } else if (action === "delete") {
     if (!confirm(`${receipt.date} ${receipt.provider} (${fmtUsd(receipt.amount)}) 영수증을 삭제할까요?`)) return;

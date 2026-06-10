@@ -132,6 +132,18 @@ input:focus, select:focus, textarea:focus {
 .badge-eligible { background: #d1fae5; color: #065f46; }
 .badge-ineligible { background: #fee2e2; color: #991b1b; }
 
+button.badge { border: none; cursor: pointer; font-family: inherit; }
+button.badge:hover { filter: brightness(0.93); }
+
+.list-footer {
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+.list-footer:empty { display: none; }
+
 .link-btn {
   background: none;
   border: none;

@@ -74,6 +74,26 @@ const DEFAULT_COURSES: Course[] = [
     ],
   },
 
+  // ── JBLM / FORT LEWIS (~20마일 북쪽) — 군 골프장, 27홀 3조합 ───────────
+  {
+    id: 'eagles_pride_rb',
+    name: 'Eagles Pride — Red/Blue',
+    location: 'JBLM, Fort Lewis, WA',
+    tees: [
+      { color: 'Blue',  rating: 73.1, slope: 126, par: 72 },
+      { color: 'White', rating: 70.5, slope: 118, par: 72 },
+    ],
+  },
+  {
+    id: 'eagles_pride_rg',
+    name: 'Eagles Pride — Red/Green',
+    location: 'JBLM, Fort Lewis, WA',
+    tees: [
+      { color: 'Blue',  rating: 71.4, slope: 123, par: 72 },
+      { color: 'White', rating: 69.9, slope: 118, par: 72 },
+    ],
+  },
+
   // ── DUPONT (~20마일 북쪽) ─────────────────────────────────────────────
   {
     id: 'home_course',

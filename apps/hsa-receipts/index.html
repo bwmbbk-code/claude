@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HSA 영수증 관리</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <h1>🏥 HSA 영수증 관리</h1>
+      <p class="subtitle">Health Savings Account 적격 의료비 영수증을 기록하고, 상환(reimbursement) 상태를 추적합니다. 모든 데이터는 이 브라우저에만 저장됩니다.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- 요약 카드 -->
+    <section class="summary-grid" id="summaryGrid">
+      <div class="card summary-card">
+        <span class="summary-label">적격 지출 누계</span>
+        <span class="summary-value" id="sumEligible">$0.00</span>
+      </div>
+      <div class="card summary-card accent">
+        <span class="summary-label">미상환 금액 (청구 가능)</span>
+        <span class="summary-value" id="sumUnreimbursed">$0.00</span>
+      </div>
+      <div class="card summary-card">
+        <span class="summary-label">올해 지출</span>
+        <span class="summary-value" id="sumThisYear">$0.00</span>
+      </div>
+      <div class="card summary-card">
+        <span class="summary-label">영수증 수</span>
+        <span class="summary-value" id="sumCount">0</span>
+      </div>
+    </section>
+
+    <!-- 툴바: 필터 + 액션 -->
+    <section class="toolbar card">
+      <div class="filters">
+        <input type="search" id="filterSearch" placeholder="🔍 병원·약국·메모 검색" />
+        <select id="filterYear"><option value="">전체 연도</option></select>
+        <select id="filterCategory"><option value="">전체 카테고리</option></select>
+        <select id="filterStatus">
+          <option value="">전체 상태</option>
+          <option value="unclaimed">미청구</option>
+          <option value="claimed">청구됨</option>
+          <option value="reimbursed">상환완료</option>
+        </select>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" id="btnAdd">＋ 영수증 추가</button>
+        <button class="btn" id="btnExportCsv" title="현재 필터 기준 CSV 다운로드">CSV 내보내기</button>
+        <button class="btn" id="btnBackup" title="이미지 포함 전체 백업(JSON)">백업</button>
+        <button class="btn" id="btnRestore" title="백업 JSON에서 복원">복원</button>
+        <input type="file" id="restoreFile" accept="application/json" hidden />
+      </div>
+    </section>
+
+    <!-- 영수증 목록 -->
+    <section class="card list-card">
+      <table class="receipt-table" id="receiptTable">
+        <thead>
+          <tr>
+            <th data-sort="date" class="sortable">날짜</th>
+            <th data-sort="provider" class="sortable">병원/약국</th>
+            <th data-sort="category" class="sortable">카테고리</th>
+            <th>대상자</th>
+            <th data-sort="amount" class="sortable amount-col">금액</th>
+            <th>적격</th>
+            <th>상태</th>
+            <th>영수증</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="receiptBody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState" hidden>
+        <p>아직 영수증이 없습니다.</p>
+        <p>「＋ 영수증 추가」 버튼으로 첫 의료비 영수증을 기록해 보세요.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- 추가/수정 모달 -->
+  <dialog id="receiptDialog">
+    <form id="receiptForm" method="dialog">
+      <h2 id="dialogTitle">영수증 추가</h2>
+      <input type="hidden" id="fId" />
+
+      <div class="form-grid">
+        <label>날짜 *
+          <input type="date" id="fDate" required />
+        </label>
+        <label>금액 (USD) *
+          <input type="number" id="fAmount" min="0" step="0.01" placeholder="0.00" required />
+        </label>
+        <label>병원/약국 *
+          <input type="text" id="fProvider" placeholder="예: CVS Pharmacy" required />
+        </label>
+        <label>카테고리
+          <select id="fCategory"></select>
+        </label>
+        <label>대상자
+          <input type="text" id="fPerson" placeholder="예: 본인, 배우자" list="personList" />
+          <datalist id="personList"></datalist>
+        </label>
+        <label>상태
+          <select id="fStatus">
+            <option value="unclaimed">미청구</option>
+            <option value="claimed">청구됨</option>
+            <option value="reimbursed">상환완료</option>
+          </select>
+        </label>
+        <label class="checkbox-label full">
+          <input type="checkbox" id="fEligible" checked />
+          HSA 적격 비용 (IRS qualified medical expense)
+        </label>
+        <label class="full">메모
+          <textarea id="fNotes" rows="2" placeholder="진료 내용, 보험 처리 여부 등"></textarea>
+        </label>
+        <label class="full">영수증 사진/PDF
+          <input type="file" id="fImage" accept="image/*,application/pdf" />
+          <div id="imagePreviewWrap" hidden>
+            <img id="imagePreview" alt="영수증 미리보기" />
+            <span id="pdfBadge" class="pdf-badge" hidden>📄 PDF 첨부됨</span>
+            <button type="button" class="btn btn-small btn-danger" id="btnRemoveImage">첨부 삭제</button>
+          </div>
+        </label>
+      </div>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn" id="btnCancel">취소</button>
+        <button type="submit" class="btn btn-primary" id="btnSave">저장</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- 영수증 이미지 뷰어 -->
+  <dialog id="viewerDialog" class="viewer">
+    <button class="btn viewer-close" id="btnViewerClose">✕ 닫기</button>
+    <div id="viewerContent"></div>
+  </dialog>
+
+  <footer class="app-footer">
+    <p>💡 HSA 영수증은 세무 감사(IRS audit) 대비로 계좌 사용 내역과 함께 장기 보관하는 것이 안전합니다. 「백업」으로 주기적으로 JSON 파일을 보관하세요.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

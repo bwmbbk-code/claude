@@ -39,6 +39,8 @@ Claude Code 세션에서 다음 슬래시 커맨드를 호출하세요.
 │   ├── commands/             # 슬래시 커맨드 (11개)
 │   ├── agents/               # 도메인별 서브에이전트 (5개)
 │   └── hooks/session-start.sh  # 세션 시작 시 config.local.md 존재 확인
+├── apps/
+│   └── hsa-receipts/         # HSA 의료비 영수증 관리 웹앱 (브라우저에서 index.html 열기)
 ├── scheduled/                # cron 실행용 Claude Agent SDK 스크립트 (TypeScript)
 └── .github/workflows/        # GitHub Actions cron 정의
 ```

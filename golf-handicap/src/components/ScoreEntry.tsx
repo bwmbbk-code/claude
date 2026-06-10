@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Course, Round } from '../types';
 import { calcDifferential } from '../lib/handicap';
+import TeeBadge from './TeeBadge';
 
 interface Props {
   courses: Course[];
@@ -11,26 +12,35 @@ export default function ScoreEntry({ courses, onAdd }: Props) {
   const today = new Date().toISOString().slice(0, 10);
   const [date, setDate] = useState(today);
   const [courseId, setCourseId] = useState(courses[0]?.id ?? '');
+  const [teeColor, setTeeColor] = useState(courses[0]?.tees[0]?.color ?? '');
   const [score, setScore] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const course = courses.find(c => c.id === courseId);
+  const tee = course?.tees.find(t => t.color === teeColor);
+
+  // When course changes, reset tee to first option
+  useEffect(() => {
+    if (course) setTeeColor(course.tees[0]?.color ?? '');
+  }, [courseId]);
+
   const scoreNum = parseInt(score, 10);
   const differential =
-    course && !isNaN(scoreNum)
-      ? calcDifferential(scoreNum, course.rating, course.slope)
+    tee && !isNaN(scoreNum)
+      ? calcDifferential(scoreNum, tee.rating, tee.slope)
       : null;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!course || isNaN(scoreNum) || scoreNum < 54 || scoreNum > 200) return;
+    if (!course || !tee || isNaN(scoreNum) || scoreNum < 54 || scoreNum > 200) return;
 
     const round: Round = {
       id: `r_${Date.now()}`,
       date,
       courseId,
+      teeColor,
       adjustedScore: scoreNum,
-      differential: calcDifferential(scoreNum, course.rating, course.slope),
+      differential: calcDifferential(scoreNum, tee.rating, tee.slope),
     };
     onAdd(round);
     setScore('');
@@ -66,10 +76,34 @@ export default function ScoreEntry({ courses, onAdd }: Props) {
             >
               {courses.map(c => (
                 <option key={c.id} value={c.id}>
-                  {c.name} — CR {c.rating} / SR {c.slope} / Par {c.par}
+                  {c.name}  ({c.location})
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Tee box */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">티박스</label>
+            <div className="flex gap-2 flex-wrap">
+              {course?.tees.map(t => (
+                <button
+                  key={t.color}
+                  type="button"
+                  onClick={() => setTeeColor(t.color)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all text-sm ${
+                    teeColor === t.color
+                      ? 'border-green-600 bg-green-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <TeeBadge color={t.color} />
+                  <span className="text-gray-600">
+                    CR {t.rating} / SR {t.slope} / Par {t.par}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Score */}
@@ -89,22 +123,25 @@ export default function ScoreEntry({ courses, onAdd }: Props) {
             />
           </div>
 
-          {/* Preview differential */}
-          {differential !== null && (
+          {/* Differential preview */}
+          {differential !== null && tee && (
             <div className="bg-green-50 border border-green-100 rounded-xl p-4">
               <p className="text-xs text-green-600 font-medium mb-1">Score Differential 미리보기</p>
-              <p className="text-2xl font-bold text-green-800">
-                {differential > 0 ? '+' : ''}{differential.toFixed(1)}
-              </p>
+              <div className="flex items-baseline gap-3">
+                <p className="text-3xl font-bold text-green-800">
+                  {differential > 0 ? '+' : ''}{differential.toFixed(1)}
+                </p>
+                <TeeBadge color={teeColor} size="md" />
+              </div>
               <p className="text-xs text-green-600 mt-1">
-                ({scoreNum} − {course!.rating}) × 113 ÷ {course!.slope}
+                ({scoreNum} − {tee.rating}) × 113 ÷ {tee.slope}
               </p>
             </div>
           )}
 
           <button
             type="submit"
-            disabled={!score || isNaN(scoreNum) || !courseId}
+            disabled={!score || isNaN(scoreNum) || !courseId || !teeColor}
             className="w-full bg-green-700 hover:bg-green-800 disabled:bg-gray-200 disabled:text-gray-400 text-white font-semibold py-2.5 rounded-xl transition-colors"
           >
             {submitted ? '저장 완료!' : '라운드 저장'}
@@ -125,14 +162,8 @@ export default function ScoreEntry({ courses, onAdd }: Props) {
                   <th className="pb-1">홀 최대</th>
                 </tr>
               </thead>
-              <tbody className="space-y-1">
-                {[
-                  ['0 – 9', '7'],
-                  ['10 – 19', '8'],
-                  ['20 – 29', '9'],
-                  ['30 – 39', '10'],
-                  ['40+', '11'],
-                ].map(([hcp, max]) => (
+              <tbody>
+                {[['0 – 9','7'],['10 – 19','8'],['20 – 29','9'],['30 – 39','10'],['40+','11']].map(([hcp, max]) => (
                   <tr key={hcp}>
                     <td className="py-0.5">{hcp}</td>
                     <td className="py-0.5 font-medium text-green-700">{max}</td>

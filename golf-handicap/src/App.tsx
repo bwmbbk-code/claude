@@ -26,10 +26,11 @@ export default function App() {
 
   function addRound(round: Round) {
     const course = courses.find(c => c.id === round.courseId);
-    if (!course) return;
+    const tee = course?.tees.find(t => t.color === round.teeColor);
+    if (!course || !tee) return;
     const r: Round = {
       ...round,
-      differential: calcDifferential(round.adjustedScore, course.rating, course.slope),
+      differential: calcDifferential(round.adjustedScore, tee.rating, tee.slope),
     };
     setRounds(prev => [...prev, r]);
     setTab('dashboard');

@@ -26,3 +26,5 @@ Thumbs.db
 # scheduled/ 실행 결과물 (디렉토리는 .gitkeep으로 유지)
 scheduled/out/*
 !scheduled/out/.gitkeep
+golf-handicap/dist/
+golf-handicap/node_modules/

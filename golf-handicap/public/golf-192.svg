@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="40" fill="#1b4332"/>
+  <!-- Golf ball -->
+  <circle cx="96" cy="82" r="34" fill="white"/>
+  <!-- Dimples -->
+  <circle cx="86" cy="74" r="4" fill="#e5e7eb" opacity="0.6"/>
+  <circle cx="100" cy="70" r="4" fill="#e5e7eb" opacity="0.6"/>
+  <circle cx="110" cy="80" r="4" fill="#e5e7eb" opacity="0.6"/>
+  <circle cx="106" cy="92" r="4" fill="#e5e7eb" opacity="0.6"/>
+  <circle cx="90" cy="90" r="4" fill="#e5e7eb" opacity="0.6"/>
+  <circle cx="80" cy="84" r="4" fill="#e5e7eb" opacity="0.6"/>
+  <!-- Flag stick -->
+  <rect x="110" y="60" width="4" height="70" fill="#52b788"/>
+  <!-- Flag -->
+  <polygon points="114,60 136,68 114,76" fill="#f59e0b"/>
+  <!-- Ground -->
+  <rect x="30" y="146" width="132" height="12" rx="6" fill="#52b788"/>
+</svg>

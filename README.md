@@ -1,78 +1,174 @@
-# 1인 기업 자동화 허브
+# Claude AI Music Skills
 
-Claude Code + MCP 도구를 기반으로 1인 기업 운영(메일·일정·문서·콘텐츠·환율)을 자동화하는 허브 레포입니다. 주식·코인 같은 투자 도메인은 범위에서 제외됩니다.
+I love music but never learned an instrument. AI became the creative outlet that was always out of reach. This project started as a way to go deep on Claude Code plugin architecture, agentic workflows, multi-model orchestration, and MCP tooling. Music was the domain because it was personal.
 
-## 처음 설정 (1회)
+What it actually does: a Claude Code plugin that turns a conversation into a full album production pipeline. You describe what you want to make, and it handles concept development, lyrics, [Suno](https://suno.com) prompts (an AI music generation platform), audio mastering, and release prep — with quality gates and source verification at every stage.
 
-1. `config.example.md` → `config.local.md`로 복사한 뒤 개인 정보(이메일, Notion DB ID, 관심 통화쌍 등)를 채웁니다.
-   ```bash
-   cp config.example.md config.local.md
-   ```
-2. (선택) 향후 cron 스크립트를 쓸 계획이면 `.env.example` → `.env`로 복사하고 `ANTHROPIC_API_KEY`를 입력합니다.
-3. Claude Code를 이 디렉토리에서 실행합니다.
+Questions? See the [FAQ](FAQ.md).
 
-## 사용법
+![Version](https://img.shields.io/github/v/release/bitwize-music-studio/claude-ai-music-skills?label=version&color=blue)
 
-Claude Code 세션에서 다음 슬래시 커맨드를 호출하세요.
+> [!NOTE]
+> Active development happens on the `develop` branch — `main` only receives tested, stable releases. If you run into issues, [open an issue](https://github.com/bitwize-music-studio/claude-ai-music-skills/issues) or submit a PR.
 
-| 커맨드 | 도메인 | 설명 |
-|---|---|---|
-| `/daily-brief` | 통합 | 아침 브리핑 (메일 Top + 오늘 일정 + 뉴스 + 환율) |
-| `/weekly-review` | 통합 | 지난 주 회고 + 다음 주 우선순위 |
-| `/inbox-triage` | 메일 | Gmail 미읽음을 중요도별로 분류하고 답장 초안 작성 |
-| `/schedule-today` | 일정 | 오늘·이번 주 일정 요약 + 빈 시간 추천 |
-| `/meeting-prep [키워드\|next]` | 일정 | 다음 회의 예습 (참석자·이력·안건) |
-| `/capture-note <텍스트>` | 지식 | 메모를 Notion 아이디어 DB에 저장 |
-| `/content-research <주제>` | 콘텐츠 | YouTube·뉴스에서 주제 리서치 후 요약 |
-| `/draft-post <주제>` | 콘텐츠 | 블로그/SNS 초안 작성 후 Drive에 저장 |
-| `/finance-brief` | 환율 | 관심 통화쌍 환율 요약 (해외 결제/청구 참고) |
-| `/expense-log <자연어>` | 재무 | 경비를 Notion 가계부 DB에 기록 |
-| `/invoice-draft <고객> <금액> [내용]` | 재무 | 청구서 마크다운 초안을 Drive에 생성 |
+---
 
-## 구조
+## Example Workflow
 
 ```
-├── CLAUDE.md                 # Claude에게 주는 프로젝트 컨텍스트
-├── config.example.md         # 개인 설정 템플릿
-├── .claude/
-│   ├── settings.json         # 읽기 전용 MCP 도구 allowlist + SessionStart 훅
-│   ├── commands/             # 슬래시 커맨드 (11개)
-│   ├── agents/               # 도메인별 서브에이전트 (5개)
-│   └── hooks/session-start.sh  # 세션 시작 시 config.local.md 존재 확인
-├── scheduled/                # cron 실행용 Claude Agent SDK 스크립트 (TypeScript)
-└── .github/workflows/        # GitHub Actions cron 정의
+You:    "Let's make an album about the 2016 Bangladesh Bank heist"
+Claude: Creates album structure, runs 7-phase concept planning
+
+You:    "Start the research"
+Claude: Dispatches legal, financial, and security researchers in parallel
+        Gathers DOJ filings, SWIFT documentation, malware analysis
+        Cross-verifies sources, flags claims that need human review
+
+You:    "Sources look good. Let's write track 1"
+Claude: Drafts lyrics, checks prosody and rhyme schemes
+        Scans for pronunciation risks, suggests phonetic fixes
+        Builds Suno V5 style prompt with genre tags and vocal direction
+
+You:    "Track sounds great, here are the stems"
+Claude: Imports stems from Suno, polishes per-stem
+        Masters to -14 LUFS for streaming
+        Generates promo video and social media copy
 ```
 
-## 예약 실행
+Concept to released album. You generate on Suno, everything else happens in the terminal.
 
-`scheduled/` 안에 4개 Agent SDK 스크립트가 준비돼 있고, `.github/workflows/`의 cron으로 돌릴 수 있습니다.
+---
 
-| 스크립트 | 주기 | 워크플로 |
-|---|---|---|
-| `daily-brief.ts` | 매일 08:00 KST | `daily-brief.yml` |
-| `inbox-digest.ts` | 수동/확장 | — |
-| `finance-watch.ts` | 평일 30분마다 | `finance-watch.yml` — 관심 통화쌍 환율 급변동 경보 |
-| `content-idea-weekly.ts` | 매주 월 09:00 KST | `content-idea-weekly.yml` |
+## Install
 
-GitHub Actions에서 돌리려면 `ANTHROPIC_API_KEY`, `MCP_CONFIG_JSON`, `CONFIG_LOCAL_MD` 시크릿을 등록하세요 (자세한 내용은 `.github/workflows/README.md`).
+```bash
+/plugin marketplace add bitwize-music-studio/claude-ai-music-skills
+/plugin install bitwize-music@bitwize-music
+```
 
-## 멀티 에이전트 구조
+Then run `/bitwize-music:setup` to detect your environment and install dependencies. Run `/bitwize-music:configure` to set your artist name and workspace paths.
 
-`.claude/agents/` 아래 5개 도메인 서브에이전트가 있고, 슬래시 커맨드와 scheduled 스크립트가 이들을 병렬로 호출합니다.
+**Platform**: macOS, Linux, WSL2, and native Windows are all fully supported. The full test suite runs on windows-latest in CI (plus dedicated Windows legs for the MCP boot check and MuseScore PDF export) — the MCP server, state cache, non-audio workflow, and the ffmpeg audio pipeline all run natively there. Promo video works on Windows too, though it's verified by hand rather than continuously guarded (its tests mock ffmpeg). Sheet music works natively too: MuseScore PDF export is CI-verified on windows-latest, and AnthemScore transcription runs against a licensed install (its free trial exposes no CLI on any OS, so that caveat isn't Windows-specific). Python 3.11+ for the MCP server and audio tools. See the [compatibility matrix](reference/cross-platform/tool-compatibility-matrix.md) for the per-feature breakdown.
 
-| 에이전트 | 도메인 | 주 도구 |
-|---|---|---|
-| `mail-analyst` | Gmail | `search_threads`, `get_thread`, `create_draft` |
-| `calendar-planner` | Calendar | `list_events`, `suggest_time`, `create_event` |
-| `finance-researcher` | 환율 | `get_exchange_rates`, `convert_currency` (주식·코인 제외) |
-| `content-scout` | 리서치 | `search_videos`, `News_Article`, `Tech_Blog` |
-| `notion-keeper` | Notion 쓰기 | `notion-search`, `notion-create-pages`, `notion-update-page` |
+---
 
-**대화형(슬래시 커맨드)**: `/daily-brief` 등은 **메인 세션이 직접 도구를 한 응답에 병렬 호출**합니다. 일부 환경에서 `Agent` 도구로 스폰된 서브에이전트가 MCP 서버에 접근하지 못하는 경우가 있어 안정성을 우선했습니다. 페르소나 파일의 분류 규칙·출력 포맷은 메인 세션이 그대로 적용.
-**비대화형(SDK)**: `scheduled/daily-brief.ts`가 `runSpecialist()`를 `Promise.all`로 병렬 호출 — 별도 프로세스라 격리·안정성 모두 확보. 페르소나는 `.claude/agents/<이름>.md` 본문을 그대로 주입해 양쪽 실행 경로에서 동일 규칙을 따르게 함 (`scheduled/lib/specialists.ts`).
+## Architecture
 
-## 확장
+This is where the engineering lives. The plugin is a case study in how far you can push Claude Code's plugin system.
 
-- **새 도메인 자동화**가 필요하면 `.claude/commands/` 아래에 `<이름>.md`를 만들고 본 README 표에 한 줄 추가하세요.
-- **새 서브에이전트**가 필요하면 `.claude/agents/<이름>.md`를 만들고 `scheduled/lib/specialists.ts`의 `SpecialistName`에 추가하세요.
-- **새 스케줄 작업**이 필요하면 `scheduled/<이름>.ts`를 만들고 `package.json` 스크립트에 엔트리를 등록하세요.
+### Skill System (53 Skills)
+
+Each skill is a self-contained markdown file with a YAML frontmatter that declares its model, description, and when it should activate. Skills range from simple clipboard operations to multi-step creative workflows. Claude routes to skills automatically based on context, or you invoke them directly with `/bitwize-music:<name>`.
+
+The lyric-writer knows prosody rules, rhyme scheme analysis, and Suno's pronunciation quirks. The mastering-engineer knows loudness targets per platform and genre-specific EQ curves. The researcher coordinates parallel sub-agents across 10 domain specializations.
+
+See [docs/skills.md](docs/skills.md) for the full reference.
+
+### Multi-Model Orchestration
+
+Skills declare which Claude model they need. Creative work that directly impacts music quality runs on Opus. Coordination and reasoning tasks use Sonnet. Mechanical operations (imports, validation, clipboard) run on Haiku.
+
+| Tier | Model | Skills | Rationale |
+|------|-------|--------|-----------|
+| Creative | Opus 4.8 | 7 | Lyrics, Suno prompts, album concepts, legal/verification research — output quality defines the music |
+| Reasoning | Sonnet 4.6 | 30 | Research coordination, pronunciation analysis, most workflows |
+| Mechanical | Haiku 4.5 | 16 | Imports, validation, clipboard, help — speed over creativity |
+
+This project pushes Claude Code hard — multi-agent research, real-time audio analysis, sub-agent orchestration across model tiers. It works best on the Max subscription. The standard Pro subscription will hit rate limits during multi-track sessions.
+
+See [reference/model-strategy.md](reference/model-strategy.md) for per-skill rationale.
+
+### MCP Server (80+ Tools)
+
+A Python MCP server exposes 80+ tools for instant state queries, audio analysis, lyrics processing, and database operations. The server is the plugin's nervous system — skills call MCP tools instead of reading files directly, which keeps responses fast and state consistent.
+
+Key tool categories:
+- **State management** — album/track lookups, session context, cache rebuild
+- **Lyrics analysis** — syllable counting, readability scoring, rhyme detection, section validation, cross-track repetition
+- **Audio processing** — mastering, stem analysis, QC checks, promo video generation
+- **Database** — tweet/promo content management via PostgreSQL
+
+### Research System
+
+For documentary and true-story albums, the research system coordinates parallel investigation across 10 domain-specific sub-agents. A lead researcher dispatches to specialists (legal, financial, security, government, journalism, etc.), each trained on where to find primary sources in their domain. A verification agent cross-checks all claims before human review.
+
+The full pipeline: gather sources, verify citations, require human sign-off, then — and only then — allow lyrics generation. Every claim in the music traces back to a captured, verified source.
+
+### Quality Gates
+
+Nothing ships without passing gates:
+- **Lyrics**: 13-point checklist (rhyme, prosody, pronunciation, POV consistency, factual accuracy)
+- **Pre-generation**: Sources verified, explicit flags set, style prompt complete, artist names cleared
+- **Audio**: 7-point QC (loudness, clipping, silence, phase, stereo width, frequency balance, dynamic range)
+- **Structure**: Album directory validation, file location checks, content integrity
+
+### Genre Coverage
+
+72 genre directories with production guides, mastering presets, artist deep-dives, and Suno-specific tips. From afrobeats to vaporwave, each genre includes subgenre breakdowns, lyric conventions, and reference artists.
+
+### CI/CD
+
+6 GitHub Actions workflows: tests (4,412 across ubuntu/macOS/Windows, plus lint, security scanning with bandit + pip-audit, and static validation), real-service integration (Postgres, SeaweedFS/S3, MuseScore), nightly deep tests, auto-release from changelog, PR target enforcement, and version sync. Dependabot watches pip and Actions versions weekly.
+
+Coverage is measured on all three OSes and gated on the **combined** total, not one platform's view. That matters because every `sys.platform == "win32"` branch is unreachable on Linux — measuring only there made the platform-specific code invisible to the gate, which is exactly where this project's real bugs have lived. The merge is asserted rather than assumed: a mis-specified path mapping makes `coverage combine` report the Linux-only number while looking like success, so the job fails unless a known win32-only line is genuinely covered.
+
+---
+
+## Project Structure
+
+```
+skills/              53 skill definitions (markdown + YAML frontmatter)
+servers/             MCP server (Python, 80+ tools)
+tools/               Audio mastering, promo videos, sheet music, cloud uploads
+reference/           46+ docs — Suno guides, mastering workflows, genre references
+genres/              72 genre directories with production guides
+templates/           Album, track, artist, research templates
+tests/               4,412 tests across 14 categories
+config/              Example config and setup docs
+```
+
+---
+
+## Detailed Documentation
+
+| Topic | Location |
+|-------|----------|
+| All 53 skills | [docs/skills.md](docs/skills.md) |
+| Configuration | [docs/configuration.md](docs/configuration.md) |
+| Troubleshooting | [docs/troubleshooting.md](docs/troubleshooting.md) |
+| Changelog | [CHANGELOG.md](CHANGELOG.md) |
+| Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Model strategy | [reference/model-strategy.md](reference/model-strategy.md) |
+| Skill decision tree | [reference/SKILL_INDEX.md](reference/SKILL_INDEX.md) |
+| Suno V5 best practices | [reference/suno/v5-best-practices.md](reference/suno/v5-best-practices.md) |
+| The story behind bitwize-music | [bitwizemusic.com/behind-the-music](https://www.bitwizemusic.com/behind-the-music/) |
+
+---
+
+## Contributors
+
+<a href="https://github.com/bitwize-music"><img src="https://images.weserv.nl/?url=github.com/bitwize-music.png&h=60&w=60&fit=cover&mask=circle" width="60" height="60" alt="@bitwize-music"></a>
+<a href="https://github.com/markus-michalski"><img src="https://images.weserv.nl/?url=github.com/markus-michalski.png&h=60&w=60&fit=cover&mask=circle" width="60" height="60" alt="@markus-michalski"></a>
+<a href="https://github.com/zeel2104"><img src="https://images.weserv.nl/?url=github.com/zeel2104.png&h=60&w=60&fit=cover&mask=circle" width="60" height="60" alt="@zeel2104"></a>
+<a href="https://github.com/alijahak"><img src="https://images.weserv.nl/?url=github.com/alijahak.png&h=60&w=60&fit=cover&mask=circle" width="60" height="60" alt="@alijahak"></a>
+<a href="https://github.com/DaveMatNat"><img src="https://images.weserv.nl/?url=github.com/DaveMatNat.png&h=60&w=60&fit=cover&mask=circle" width="60" height="60" alt="@DaveMatNat"></a>
+<a href="https://github.com/thejesh23"><img src="https://images.weserv.nl/?url=github.com/thejesh23.png&h=60&w=60&fit=cover&mask=circle" width="60" height="60" alt="@thejesh23"></a>
+<a href="https://github.com/tgh612"><img src="https://images.weserv.nl/?url=github.com/tgh612.png&h=60&w=60&fit=cover&mask=circle" width="60" height="60" alt="@tgh612"></a>
+
+If you make something with this, I'd genuinely love to hear it — [@bitwizemusic](https://x.com/bitwizemusic) on X, [join the Discord](https://discord.gg/dMURByGF), or [open a discussion](https://github.com/bitwize-music-studio/claude-ai-music-skills/discussions).
+
+---
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=bitwize-music-studio/claude-ai-music-skills&type=Date)](https://star-history.com/#bitwize-music-studio/claude-ai-music-skills&Date)
+
+---
+
+## License
+
+CC0 — Public Domain. Do whatever you want with it.
+
+## Disclaimer
+
+Artist and song references in the genre documentation are for educational and reference purposes only. This plugin does not encourage creating infringing content. Users are responsible for ensuring their generated content complies with applicable laws and platform terms of service.

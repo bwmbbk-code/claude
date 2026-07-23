@@ -1,54 +1,307 @@
-# CLAUDE.md
+# AI Music Skills - Claude Instructions
 
-이 레포는 **1인 기업 운영 자동화 허브**입니다. 사용자는 메일·일정·문서·콘텐츠·재무 5개 도메인에 걸친 반복 업무를 Claude Code + MCP 도구로 자동화합니다.
+This is an AI music generation workflow using Suno. Skills contain domain expertise; this file contains workflow rules and structure that apply every session.
 
-## 도메인과 담당 MCP 서버
+---
 
-| 도메인 | MCP 서버(핵심 도구) |
-|---|---|
-| 메일 | Gmail (`search_threads`, `get_thread`, `create_draft`, `list_labels`) |
-| 일정 | Google Calendar (`list_events`, `create_event`, `suggest_time`, `list_calendars`) |
-| 문서/지식 | Notion (`notion-search`, `notion-fetch`, `notion-create-pages`, `notion-update-page`), Google Drive (`search_files`, `read_file_content`, `create_file`) |
-| 콘텐츠 | YouTubeData (`search_videos`, `get_transcripts`, `get_trending_videos`), ItNewsSearch (`News_Article`, `Tech_Blog`) |
-| 환율 (재무) | Eodi (`get_exchange_rates`, `convert_currency`) — 해외 결제·청구 참고용. 주식·코인 시세는 다루지 않음. |
+## ⚠️ CRITICAL: Finding Albums When User Mentions Them
 
-## 개인 설정 참조
+**WHENEVER the user mentions an album name**, use the resume skill:
+```
+/bitwize-music:resume my-album
+```
 
-사용자의 이메일 주소, Notion DB ID, 관심 통화쌍 등은 **`config.local.md`**(gitignore됨)에 있습니다. 커맨드를 실행할 때 이 파일을 먼저 읽어 필요한 값을 가져오세요. 파일이 없으면 사용자에게 "먼저 `config.example.md`를 `config.local.md`로 복사해 채워 주세요"라고 안내하고 중단합니다.
+**If skill unavailable**, manual approach:
+1. Read `~/.bitwize-music/cache/state.json` — search `state.albums` keys (case-insensitive)
+2. If cache missing/stale: read config → glob `{content_root}/artists/{artist}/albums/*/*/README.md` → rebuild cache with `rebuild_state()` MCP tool
 
-## MCP 도구 호출 지침
+**DO NOT**: search from cwd, use complex globs, assume paths, or use `ls`/`find`.
 
-- **Gmail 검색**: 사용자 질의를 `search_threads`의 Gmail 쿼리 문법으로 변환 (`is:unread`, `newer_than:1d`, `from:`, `label:` 등).
-- **Notion 쓰기**: 먼저 `notion-search` 또는 `notion-fetch`로 대상 페이지/DB의 구조를 확인한 뒤 `notion-create-pages`나 `notion-update-page`를 호출.
-- **쓰기 계열 도구(draft 생성, 페이지 생성, 캘린더 이벤트 생성, 파일 생성)**: 호출 전에 한 줄 요약으로 "무엇을 어디에 만들지" 먼저 사용자에게 고지하세요. 권한 프롬프트에서 사용자가 막을 수 있게 합니다.
-- **환율 도구**: `get_exchange_rates` 같은 읽기 도구는 여러 통화쌍을 한 응답에 병렬 호출하세요 (한 번의 응답에 여러 tool_use). 주식·코인 관련 MCP 도구는 호출하지 않습니다.
-- **날짜 관련**: 모든 커맨드는 사용자 타임존(기본 Asia/Seoul)을 기준으로 해석합니다.
+Album slugs are globally unique across genres; if `health_check` reports a slug collision, resolve it (rename or move the directory, then rebuild) before trusting lookups.
 
-## 스타일
+---
 
-- 최종 출력은 **마크다운**, 섹션 제목은 `##`, 긴 리스트보다 표를 선호.
-- 사용자 언어는 기본 **한국어**. 고유명사·제품명·회사명은 원어 그대로 둡니다.
-- 민감한 내용(비밀번호, 토큰이 포함된 메일 스니펫 등)은 출력하지 말고 "민감 내용 포함" 표시로 마스킹.
+## Configuration & Path Resolution
 
-## 슬래시 커맨드 카탈로그
+Config is **always** at: `~/.bitwize-music/config.yaml`
 
-`.claude/commands/` 하위의 각 `.md` 파일이 하나의 커맨드입니다. 추가하려면 같은 디렉토리에 새 파일을 만들고 `README.md` 표에 한 줄 추가하세요.
+**ALWAYS read config fresh before** moving/creating files, resolving path variables, or using artist name in paths. Never assume or remember values.
 
-## 서브에이전트 (멀티 에이전트)
+**Path variables** (from config):
+- `{content_root}` = `paths.content_root`
+- `{audio_root}` = `paths.audio_root`
+- `{documents_root}` = `paths.documents_root`
+- `{tools_root}` = `~/.bitwize-music`
+- `{plugin_root}` = the directory containing this CLAUDE.md file (= `${CLAUDE_PLUGIN_ROOT}` in skills)
+- `[artist]` = `artist.name`
 
-도메인별 서브에이전트는 `.claude/agents/` 아래에 정의돼 있습니다 (`mail-analyst`, `calendar-planner`, `finance-researcher`, `content-scout`, `notion-keeper`). 각 에이전트는 자기 도메인의 도구만 사용하고, 지정된 출력 포맷만 리턴하도록 시스템 프롬프트에 규칙이 잠겨 있습니다.
+**IMPORTANT — Mirrored path structure**:
+```
+{content_root}/artists/[artist]/albums/[genre]/[album]/   # Album files (in git)
+{audio_root}/artists/[artist]/albums/[genre]/[album]/     # Mastered audio
+{documents_root}/artists/[artist]/albums/[genre]/[album]/ # PDFs (not in git)
+```
+Audio and document paths include `[artist]/` after the root. Common mistake: omitting the artist folder.
 
-**실행 경로별로 활용 방식이 다릅니다.**
+First-time setup: `cp config/config.example.yaml ~/.bitwize-music/config.yaml` — see `config/README.md`.
 
-| 경로 | 멀티 에이전트 활용 | 이유 |
-|---|---|---|
-| 대화형 슬래시 커맨드 (`/daily-brief` 등) | **메인 세션이 직접 도구를 병렬 호출**. 서브에이전트는 호출하지 않음. | 일부 환경에서 `Agent` 도구로 스폰된 서브에이전트가 메인 세션과 분리된 권한 컨텍스트를 가져 MCP 서버에 접근하지 못하는 경우가 있음. 단순 fetch-and-return 패턴은 메인 세션 병렬 tool_use가 동일 속도이고 항상 작동. |
-| SDK 비대화형 (`scheduled/*.ts`) | **`runSpecialist()`가 별도 프로세스로 페르소나 파일을 주입**. 진짜 팬아웃/팬인. | 별도 프로세스라 격리가 보장되고, cron에서 안정적으로 작동. 페르소나 규칙이 시스템 프롬프트로 강제됨. |
+---
 
-`.claude/agents/<이름>.md` 본문은 두 경로 모두에서 단일 진실 원천(single source of truth)으로 쓰입니다. 사용자가 명시적으로 "X 에이전트로 처리해줘"라고 요청한 경우에만 대화형에서도 `Agent` 도구를 시도하세요.
+## MCP Server — Preferred Data Access
 
-## 확장 경로
+The `bitwize-music-mcp` server is the **preferred way to query project state**. Use MCP tools instead of reading files directly — they're faster (single call vs multiple file reads) and return structured data.
 
-- `scheduled/`: cron + Claude Agent SDK 기반 비대화형 실행 스크립트. 네 개의 작업이 구현돼 있음 (daily-brief, inbox-digest, finance-watch, content-idea-weekly).
-- `.github/workflows/`: 위 스크립트를 GitHub Actions cron으로 돌리는 워크플로 3개.
-- `.claude/hooks/session-start.sh`: 세션 시작 시 `config.local.md` 존재 확인, 없으면 사용자에게 설정 안내를 주입.
+**Use MCP tools for:**
+- **Albums/tracks** → `list_albums`, `find_album`, `get_track` (not reading state.json or globbing for READMEs)
+- **Skills** → `list_skills`, `get_skill` (not reading individual SKILL.md files)
+- **Ideas** → `get_ideas` (not reading IDEAS.md)
+- **Pending verifications** → `get_pending_verifications`
+- **Config** → `get_config` (not reading config.yaml for simple lookups)
+- **Session context** → `get_session`, `update_session`
+- **Cross-scope search** → `search`
+- **Stale cache** → `rebuild_state`
+
+**Fall back to direct file access only when:** MCP server is unavailable, you need to edit files (MCP is read-only), or you need raw file content not exposed through MCP (e.g., full lyrics, research docs).
+
+---
+
+## Session Start
+
+At the beginning of a fresh session:
+
+1. **Verify setup** — Quick dependency check:
+   ```bash
+   ~/.bitwize-music/venv/bin/python3 -c "import mcp" 2>&1 >/dev/null && echo "✅ MCP ready" || echo "❌ MCP missing"        # macOS/Linux/WSL
+   ~/.bitwize-music/venv/Scripts/python.exe -c "import mcp" 2>&1 >/dev/null && echo "✅ MCP ready" || echo "❌ MCP missing" # Windows (Git Bash; cmd/PowerShell: %USERPROFILE%\.bitwize-music\venv\Scripts\python.exe)
+   ```
+   - If MCP missing → **Stop immediately** and suggest: `/bitwize-music:setup mcp`
+   - If config missing → suggest: `/bitwize-music:configure`
+   - Don't proceed with session start until setup is complete
+1.5. **Health check** — Use `health_check` MCP tool (checks venv + skill registration):
+   - Venv `status: "ok"` → continue silently
+   - Venv `status: "stale"` → warn with mismatches and fix command, continue session
+   - Venv `status: "no_venv"` → **stop** and suggest `/bitwize-music:setup`
+   - Venv `status: "error"` → warn and continue
+   - Skills `status: "ok"` → continue silently
+   - Skills `status: "stale"` → warn with missing/ghost skill names and fix message, continue session
+   - Skills `status: "no_cache"` → warn (plugin may not be installed via marketplace), continue
+   - Collisions `status: "collision"` → warn listing each slug + genres and the fix (rename one album with `/bitwize-music:rename` or move the directory, then `rebuild_state`), continue session
+2. **Load config** — Read `~/.bitwize-music/config.yaml`. If missing, tell user to run `/bitwize-music:configure`.
+3. **Load overrides** — Check `paths.overrides` (default: `{content_root}/overrides`):
+   - `{overrides}/CLAUDE.md` → incorporate instructions
+   - `{overrides}/pronunciation-guide.md` → merge with base guide
+   - Skip silently if missing (overrides are optional)
+4. **Load state via MCP** — Use MCP tools to query project state:
+   - `get_config` → verify config is loaded
+   - `list_albums` → get album statuses
+   - `get_ideas` → get idea counts
+   - `get_pending_verifications(summary_only=True)` → check for pending source verifications (count only)
+   - `get_session` → resume last session context
+   - If MCP returns errors about missing/stale cache → `rebuild_state()` MCP tool
+4.5. **Check for plugin upgrades** — Call the `get_pending_migrations` MCP tool (compares the installed version against state's `last_migrated_version`, not `plugin_version`):
+   - `pending` empty (`reason: "current"`, or `"unknown"` when plugin.json is unreadable) → no action
+   - `pending` non-empty (`reason: "upgrade"` or `"untracked"`) → process each note's actions in order, then call `acknowledge_migrations` to record them as done
+   - Never clear migrations by rebuilding state — a rebuild preserves pending status; only `acknowledge_migrations` advances `last_migrated_version`
+5. _(Removed — skills use tier aliases (`opus`/`sonnet`/`haiku`) that auto-track the frontier model, and the test suite (`/bitwize-music:test`) enforces model/effort hygiene, so no action is needed on new releases.)_
+6. **Report from MCP state**:
+   - Health warnings (from step 1.5 — omit if ok):
+     - Venv stale: "⚠️ Venv has N outdated package(s): pkg1 (1.0.0 → 1.1.0), ... Run: `<venv check's fix field from health_check>`" (already the correct command for the user's OS)
+     - Skills stale: "⚠️ N skill(s) missing from Claude Code, N ghost — run: `claude plugin update bitwize-music`"
+   - Album ideas (from `get_ideas`)
+   - In-progress albums (status: "In Progress", "Research Complete", "Complete")
+   - Pending source verifications (from `get_pending_verifications(summary_only=True)`)
+   - Last session context (from `get_session`)
+7. **Show contextual tips** based on state:
+   - No albums → suggest `/bitwize-music:tutorial`
+   - Ideas exist → suggest `/bitwize-music:album-ideas list`
+   - In-progress albums → suggest `/bitwize-music:resume [album-name]`
+   - Overrides loaded → note it; missing → suggest creating them (see `config/README.md` for override file reference)
+   - Pending verifications → warn and suggest `/bitwize-music:verify-sources`
+   - One contextual tip from: resume, researcher, pronunciation, clipboard, mastering (pick based on most relevant album state)
+8. **Ask**: "What would you like to work on?"
+
+---
+
+## Core Principles
+
+**Be a collaborator, not a yes-man.** Push back when ideas don't work. The goal is good music, not agreement.
+
+**Preserve exact casing and spelling.** "bitwize" stays "bitwize" — never auto-capitalize user-provided names, titles, or text.
+
+**Ask when unsure.** Word choice, style, structure, Suno settings — don't guess.
+
+**Pronunciation hard rule**: Suno CANNOT infer pronunciation from context. When any homograph is found (live, read, lead, wound, close, bass, tear, wind, etc.), **ASK** the user which pronunciation is intended — never assume. Fix with phonetic spelling in Suno lyrics only. See `/skills/lyric-writer/SKILL.md` and `/reference/suno/pronunciation-guide.md` for full rules.
+
+**After writing or revising lyrics**, run the 13-point quality checklist from `/skills/lyric-writer/SKILL.md`. Report violations without being asked.
+
+**When user says "let's work on [track]"**, scan full lyrics for issues BEFORE doing anything else: weak lines, prosody problems, POV/tense inconsistencies, twin verses, missing hook, factual errors, flow/pronunciation risks.
+
+---
+
+## Workflow Overview
+
+Concept → Research → Write (+Suno Prompt) → [Refine] → QC/Verify → Generate → [Polish] → Master → Promo Videos (optional) → Promo Copy (optional) → **Release**
+
+**Critical**: Research must complete before writing for source-based content. Human source verification is required before generation — never skip this gate.
+
+### Key Routing Rules
+
+- **Album mentioned** → `/bitwize-music:resume`
+- **"Make a new album"** → IMMEDIATELY use `/bitwize-music:new-album` BEFORE any discussion
+- **"Turn idea into album" / "promote [idea]"** → `/bitwize-music:promote-idea "<idea title>"` (one-shot: creates album from a Pending idea, injects concept, updates status)
+- **Writing lyrics** → apply `/bitwize-music:lyric-writer` expertise (auto-invokes suno-engineer)
+- **Refining/polishing lyrics** → `/bitwize-music:lyric-refiner` (post-writing multi-pass refinement)
+- **Planning album** → apply `/bitwize-music:album-conceptualizer` (7 planning phases required)
+- **Suno prompts** → apply `/bitwize-music:suno-engineer` expertise (usually auto-invoked by lyric-writer; use directly only for re-prompting)
+- **Research needed** → apply `/bitwize-music:researcher` standards
+- **Polishing audio / fixing Suno artifacts** → apply `/bitwize-music:mix-engineer` expertise
+- **Mastering audio** → polish first via `/bitwize-music:mix-engineer`, then apply `/bitwize-music:mastering-engineer` standards. Skip polish only if: (a) user says "master only", "skip polish", or "already polished"; or (b) polished audio already exists at `{audio_root}/artists/[artist]/albums/[genre]/[album]/polished/`. Applies equally to single-track and whole-album mastering.
+- **Album art** → apply `/bitwize-music:album-art-director`
+- **Writing promo copy** → apply `/bitwize-music:promo-writer` expertise
+- **Releasing** → apply `/bitwize-music:release-director`
+
+- **Checking for plagiarism** → `/bitwize-music:plagiarism-checker` (web search + LLM knowledge)
+- **Checking voice/authenticity** → `/bitwize-music:voice-checker` (detect AI-sounding patterns)
+- **Verifying sources** → `/bitwize-music:verify-sources` (human verification gate)
+- **"What skills do X?"** → `list_skills` / `get_skill` MCP tools (not reading SKILL.md files)
+
+Skills contain the deep expertise. See `/reference/SKILL_INDEX.md` for the full decision tree.
+
+### Duration Planning
+
+Album target duration set during Phase 3 (Sonic Direction). Tracks inherit unless overridden.
+**Lookup**: Track `Target Duration` → Album `Target Duration` → Genre default (craft-reference.md)
+
+### Source Verification Gate
+
+1. Capture sources FIRST — every source must be a clickable markdown link `[Name](URL)`
+2. Save RESEARCH.md and SOURCES.md to album directory (never cwd)
+3. After adding sources → status: `❌ Pending` → human verifies via `/bitwize-music:verify-sources` → `✅ Verified (DATE)`
+4. Block generation if verification incomplete — `/bitwize-music:pre-generation-check` enforces this
+
+### Status Tracking
+
+**Track statuses** (in order):
+`Not Started` → `Sources Pending` → `Sources Verified` → `In Progress` → `Generated` → `Final`
+
+- `Not Started`: No work begun on this track
+- `Sources Pending`: Sources gathered, awaiting human verification
+- `Sources Verified`: Human confirmed all sources via `/bitwize-music:verify-sources`
+- `In Progress`: Lyrics being written or revised
+- `Generated`: Track generated on Suno, audio exists. User listens and either approves (mark ✓ in Generation Log → advance to `Final`) or rejects (see Regeneration Workflow below)
+- `Final`: Approved and ready for mastering
+
+**Album statuses** — two flows depending on album type:
+
+**Documentary/true-story albums** (full flow):
+`Concept` → `Research Complete` → `Sources Verified` → `In Progress` → `Complete` → `Released`
+
+**Standard albums** (non-documentary, skip research statuses):
+`Concept` → `In Progress` → `Complete` → `Released`
+
+- `Concept`: Initial planning, album README created
+- `Research Complete`: All research done, sources gathered (documentary albums only)
+- `Sources Verified`: Human verified all track sources (documentary albums only)
+- `In Progress`: Active writing/generation work
+- `Complete`: All tracks Final, ready for mastering/release
+- `Released`: Published to streaming platforms
+
+**Transition rules**: Album status advances when ALL tracks reach the corresponding level. A single unverified track keeps the album from advancing past "Research Complete".
+
+**Auto-advancement**: Skills that complete a phase should advance the album status automatically:
+- `/bitwize-music:verify-sources` → when all tracks verified, advance album to `Sources Verified`
+- When all tracks are `Final` → album advances to `Complete`
+
+**Batch operations**: To mark all Generated tracks as Final after QA, use `update_track_field(album_slug, track_slug, "status", "Final")` for each track via MCP, or ask Claude to batch-approve all tracks when all have ✓ in their Generation Logs.
+
+### Regeneration Workflow
+
+When a user rejects a generated track (doesn't like the result, wrong style, pronunciation issues, etc.):
+
+1. **Log the rejection**: Add a row in the Generation Log with the reason (e.g., "wrong tempo", "vocal too high", "mispronounced name")
+2. **Decide the fix path**:
+   - **Style issue** (wrong genre, tempo, mood) → Revise Style Box via `/bitwize-music:suno-engineer`, then regenerate on Suno
+   - **Lyrics issue** (wrong words, pronunciation) → Fix lyrics via `/bitwize-music:lyric-writer`, re-run `/bitwize-music:pronunciation-specialist`, then regenerate
+   - **Suno interpretation** (right prompt, wrong result) → Regenerate on Suno with same settings (Suno is non-deterministic)
+3. **Regenerate**: Generate again on Suno, log the new attempt
+4. **When satisfied**: Mark the keeper with ✓ in the Generation Log Rating column, then advance Status to `Final`
+
+**Status stays `Generated`** during regeneration — no backward transition needed. The Generation Log tracks all attempts. A track is only `Final` when it has a ✓ in the Rating column.
+
+**Quick reference**: `resume` and `next-step` detect Generated tracks without a ✓ rating and recommend the appropriate regeneration action.
+
+See `/reference/workflows/error-recovery.md` for detailed recovery procedures.
+
+See `/reference/state-schema.md` for the full state cache schema.
+
+---
+
+## Content Structure
+
+Albums: `{content_root}/artists/[artist]/albums/[genre]/[album]/`
+Templates: `{plugin_root}/templates/` — use for all new content
+Research staging: `{content_root}/research/` (move to album directory once album exists)
+
+**Album directory layout:**
+```
+{album}/
+├── README.md
+├── SOURCES.md        # (documentary albums)
+├── RESEARCH.md       # (documentary albums)
+├── tracks/
+│   ├── 01-track-name.md
+│   └── ...
+└── promo/            # Social media copy
+    ├── campaign.md
+    ├── twitter.md
+    ├── instagram.md
+    ├── tiktok.md
+    ├── facebook.md
+    └── youtube.md
+```
+
+Track files: zero-padded (`01-`, `02-`). Import with `/bitwize-music:import-track`, `/bitwize-music:import-audio`.
+
+`promo_videos/` in `{audio_root}` holds video files (unchanged). `promo/` in album directory holds social media copy (text).
+
+Currently supports **Suno** (default). Service-specific template sections marked with `<!-- SERVICE: suno -->`.
+
+---
+
+## Versioning & Development
+
+[Semantic Versioning](https://semver.org/) with [Conventional Commits](https://conventionalcommits.org/).
+
+| Prefix | Version Bump |
+|--------|--------------|
+| `feat:` | MINOR |
+| `fix:` | PATCH |
+| `feat!:` | MAJOR |
+| `docs:`, `chore:` | None |
+
+**Co-author line**: use the model actually running the session, e.g. `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`
+
+**Version files (must stay in sync)**: `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`
+
+**Release process**: Update CHANGELOG.md `[Unreleased]` → `[0.x.0 - DATE]`, update version in both plugin files, update README "What's New" table if notable. Commit: `chore: release 0.x.0`
+
+**Development workflow**: Feature branch off `develop` → Conventional Commits → `/bitwize-music:test all` → PR into `develop` → Release: merge `develop` → `main`. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+**Release PRs use a merge commit — never squash or rebase.** When merging `develop` → `main`, use a **merge commit**. Squashing collapses develop's history into a single new commit on `main`, permanently diverging the two branches so every *subsequent* release PR conflicts. (Feature PRs *into* `develop` may squash freely.) If `develop` and `main` have already diverged from a past squash, reconcile on `develop` with `git merge -s ours origin/main` (keeps develop's tree, records `main` as an ancestor) before merging.
+
+**Pre-push gate**: **ALWAYS run `make check` before `git push`.** This runs the same `ruff` + `bandit` + `mypy` + `pytest` suite that CI runs in the Lint and Tests jobs (see `Makefile` + `.github/workflows/test.yml`). `make lint` alone is fine for a quick type-check. Running targeted `pytest tests/unit/…` and file-scoped `ruff check` is NOT equivalent — `make` spins up `.venv` from `requirements.txt + requirements-test.txt` so mypy sees real (not stubbed) third-party types, which is what CI sees. If `make check` fails, fix the root cause; do not push and hope CI catches a different picture.
+
+**External contributor PRs**: When the user mentions merging, reviewing, or having merged a PR from a non-maintainer (anyone other than @bitwize-music), check the Contributors section of README.md. If the PR author is not listed, proactively offer to add them using the same `<a href>` avatar block format as existing entries. Do this without being asked.
+
+---
+
+## Mid-Session Rules
+
+**Workflow file changes take effect immediately.** Re-read after any edit to CLAUDE.md or templates.
+
+**Lessons learned protocol**: When you discover a technical issue during production (pronunciation error, rhyme violation, wrong assumption):
+1. Fix the immediate issue
+2. Sweep the album for the same issue
+3. Propose a rule to prevent recurrence: "I found [issue]. Here's a rule: [rule]. Should I add it to [location]?"
+
+**Self-updating skills**: When a skill discovers something new, it adds to the relevant reference file. User-specific content (pronunciations) goes to `{overrides}/` directory.
